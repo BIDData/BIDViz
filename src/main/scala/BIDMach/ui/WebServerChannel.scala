@@ -28,7 +28,7 @@ import BIDMat.MatFunctions.ones
 class WebServerChannel extends NetSink.Channel {
 
   var funcList: List[Function[Array[Mat], Mat]] = List() // Model=>Mat
-  var server = new TestServer
+  var server = LocalWebServer.mkNewServer()
   // server.startServer()
   funcList :+ (WebServerChannel.allOnes _)
 
@@ -53,14 +53,6 @@ class WebServerChannel extends NetSink.Channel {
       | }
       | scala.reflect.classTag[%s].runtimeClass
     """.stripMargin
-
-  def createAndStartServer() = {
-    val server = NettyServer.fromRouter() {
-      case GET(p"/") => Action {
-        Results.Ok(s"hello world")
-      }
-    }
-  }
 
   def evaluateCodeToFunction(code: String): Function[Array[Mat], Mat] = {
     val completeCode = codeTemplate.format("Classname", code, "Classname")

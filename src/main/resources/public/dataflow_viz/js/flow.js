@@ -27,20 +27,24 @@ function requestData() {
 
 function update(data){
     var object=$.parseJSON(data);
-    var point=[data.x,data.y];
+    var point=[object.x, object.y];
     var series=chart.series[0];
     var shift=series.data.length>40;
     chart.series[0].addPoint(point,true,shift);
 }
 
 $(document).ready(function() {
+    $('#start').click(function() {
+        console.log("i am here");
+        connectToWS();
+    });
     chart = new Highcharts.Chart({
         chart: {
             renderTo: 'container',
             defaultSeriesType: 'spline',
-            events: {
-                load: requestData
-            }
+//            events: {
+//                load: requestData
+//            }
         },
         title: {
             text: 'Training Data',

@@ -4,19 +4,21 @@
 
 
 var myWebSocket;
-var endPoint = "";
+var endPoint = "ws://" + window.location.host + "/ws";
 
 function connectToWS() {
     if (myWebSocket !== undefined) {
         myWebSocket.close()
     }
     myWebSocket = new WebSocket(endPoint);
+
     myWebSocket.onmessage = function (event) {
-        // window.alert("Message: " + event.data)
-        update(data);
+        console.log("Message: " + event.data)
+        update(event.data);
     };
     myWebSocket.onopen = function (event) {
         console.log("onopen.");
+        myWebSocket.send("qihan");
     };
     myWebSocket.onclose = function (event) {
         console.log("onclose.");

@@ -5,8 +5,6 @@ package BIDMach.ui
   */
 object HanTest {
   def main(args: Array[String]) = {
-    var x = new WebServerChannel
-    val f = x.evaluateCodeToFunction("ones(4,4)")
-    println(f(null))
+    var x = LocalWebServer.mkNewServer()
   }
 }

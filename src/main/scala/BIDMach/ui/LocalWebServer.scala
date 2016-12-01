@@ -15,14 +15,17 @@ import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json._
 
 /**
- * A simple lightweight web server built upon Play framework https://www.playframework.com/
- * Please override the routes before using it
- * The web sever will be running as soon as you instantiate the class.
- * For details about how to write your own routing rules, see: https://www.playframework.com/documentation/2.5.x/ScalaSirdRouter
- * See the examples below in object LocalWebServer, supporting WebSocket and static file serving
- **/
- 
+  * A simple lightweight web server built upon Play framework https://www.playframework.com/
+  * Please override the routes before using it
+  * The web sever will be running as soon as you instantiate the class.
+  * For details about how to write your own routing rules, see: https://www.playframework.com/documentation/2.5.x/ScalaSirdRouter
+  * See the examples below in object LocalWebServer, supporting WebSocket and static file serving
+  **/
+
 abstract class LocalWebServer {
+
+  var func: Function[String, Unit] = null
+
   val environment = new Environment(
     new File("."),
     getClass.getClassLoader,
@@ -34,7 +37,7 @@ abstract class LocalWebServer {
   //Override routes to build your own WebServer
   //See examples below or learn from here: https://www.playframework.com/documentation/2.5.x/ScalaSirdRouter
   def routes:Router.Routes
-  
+
   if (routes == null) throw new Exception("Routes is null")
   val components = new BuiltInComponentsFromContext(context) {
     override def router: Router = Router.from(routes)
@@ -61,54 +64,49 @@ abstract class LocalWebServer {
       }
     }
   }
-  
+
   def startPort = 9000
 
   val (port, server) = startFindPort(startPort)
-  
+
   def stop() = server.stop()
 
 }
 
 object  LocalWebServer {
-    def mkNewServer() = {
-        //Examples about using the LocalWebServer
-        //It will start a simple web server supporting WebSocket and static file serving
-        val server = new LocalWebServer {
-            //override def startPort = 21000
-            override def routes = {
-                case GET(p"/hello/") => Action {
-                    Results.Ok("hello guest")
-                }
-                case GET(p"/hello/$to") => Action {
-                    Results.Ok(JsObject(Seq(                //Examples using JSON, more details here: https://www.playframework.com/documentation/2.5.x/ScalaJson
-                        "type" -> JsString("result"),
-                        "data" -> JsString("hello to " + to))))
-                }
-                case GET(p"/assets/$file*")=>
-                  controllers.Assets.at(path="/public", file=file)
-                case GET(p"/query" ? q_o"data=$data") => Action {
-                    val d = data.getOrElse("0")
-                    Results.Ok(s"The incoming query data is $d")
-                }
-                case GET(p"/ws")=>      //WebSocket Example, more details here: https://www.playframework.com/documentation/2.5.x/ScalaWebSockets
-                   WebSocket.using[String] { 
-                       request =>
-                   
-                        // Concurrent.broadcast returns (Enumerator, Concurrent.Channel)
-                        val (out, channel) = Concurrent.broadcast[String]
-        
-                        // log the message to stdout and send response back to client
-                        val in = Iteratee.foreach[String] {
-                          msg =>
-                            println(msg)
-                            // the Enumerator returned by Concurrent.broadcast subscribes to the channel and will
-                            // receive the pushed messages
-                            channel push("I received your message: " + msg)
-                        }
-                        (in,out)
-                  }
-            }
-        }
+  def mkNewServer():LocalWebServer = {
+    //Examples about using the LocalWebServer
+    //It will start a simple web server supporting WebSocket and static file serving
+    val server = new LocalWebServer {
+      //override def startPort = 21000
+      override def routes = {
+        case GET(p"/") => controllers.Assets.at(path="/public/dataflow_viz", file="index.html")
+        case GET(p"/ws")=>      //WebSocket Example, more details here: https://www.playframework.com/documentation/2.5.x/ScalaWebSockets
+          WebSocket.using[String] {
+            request =>
+
+              // Concurrent.broadcast returns (Enumerator, Concurrent.Channel)
+              val (out, channel) = Concurrent.broadcast[String]
+
+              // log the message to stdout and send response back to client
+              val in = Iteratee.foreach[String] {
+                msg =>
+                  println(msg)
+                  // the Enumerator returned by Concurrent.broadcast subscribes to the channel and will
+                  // receive the pushed messages
+                  channel.push("{\"x\": 0, \"y\": 0 }")
+                  func = channel push _
+              }
+              println("websocket")
+              (in,out)
+          }
+
+        case GET(p"/assets/$file*")=>
+          controllers.Assets.at(path="/public", file=file)
+        case GET(p"/$file*")=>
+          controllers.Assets.at(path="/public/dataflow_viz", file=file)
+      }
     }
+    return server
+  }
 }
