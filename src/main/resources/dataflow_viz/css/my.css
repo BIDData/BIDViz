@@ -1,0 +1,9 @@
+@import 'https://code.highcharts.com/css/highcharts.css';
+
+.navbar-default .navbar-nav > li > a:hover, .navbar-default .navbar-nav > li > a:focus {
+    color: #8c8c8c;
+}
+
+.highcharts-title{
+    font-size: 30px;
+}
