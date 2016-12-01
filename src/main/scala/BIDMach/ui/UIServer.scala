@@ -96,6 +96,7 @@ object UIServer {
             )
             channel.push(res.toString)
         }
+        def push(ipass: Int, mats: Array[Mat]):Unit = {}
     }
     
     def main(args: Array[String]) {

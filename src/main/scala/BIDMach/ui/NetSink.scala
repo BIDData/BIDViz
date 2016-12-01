@@ -34,14 +34,15 @@ class NetSink(override val opts:NetSink.Opts = new NetSink.Options) extends MatS
     mergeBlocks
     if (blocks.size > 0) {
         if (opts.channel != null)
-            opts.channel.push(opts.names,mats)
+            opts.channel.push(0, mats)
     }
   }
 }
 
 object NetSink {
   trait Channel {
-      def push(names:Array[String],mats:Array[Mat])
+    // def push(names:Array[String],mats:Array[Mat])
+    def push(ipass:Int,mats:Array[Mat])
   }
   
   trait Opts extends MatSink.Opts {

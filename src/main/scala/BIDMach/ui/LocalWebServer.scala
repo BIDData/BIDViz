@@ -71,7 +71,7 @@ abstract class LocalWebServer {
 }
 
 object  LocalWebServer {
-    def main(arg:Array[String]) {
+    def mkNewServer() = {
         //Examples about using the LocalWebServer
         //It will start a simple web server supporting WebSocket and static file serving
         val server = new LocalWebServer {
