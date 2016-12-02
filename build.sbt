@@ -45,14 +45,26 @@ libraryDependencies += "com.typesafe.play" % "play-netty-server_2.11" % "2.4.8"
 libraryDependencies += "com.typesafe.akka" % "akka-slf4j_2.11" % "2.4.8"
 // libraryDependencies += "BIDMat" % "BIDMat" % "1.1.1"
 // libraryDependencies += "BIDMach" % "BIDMach" % "1.1.1"
+libraryDependencies += "com.googlecode.scalascriptengine" % "scalascriptengine" % "1.3.6-2.10.3"
 
+
+unmanagedResourceDirectories in Compile += baseDirectory.value / "lib"
+includeFilter in (Compile, unmanagedResourceDirectories):= ".dll,.so"
 
 
 // to be able to get realtime compilation working in sbt
 // see
 // https://github.com/kostaskougios/scalascriptengine/issues/13
-// addSbtPlugin("com.eed3si9n" % "sbt-assembly" % "0.11.2")
+val sbtcp = taskKey[Unit]("sbt-classpath")
+sbtcp := {
+  val files: Seq[File] = (fullClasspath in Compile).value.files
+  val sbtClasspath : String = files.map(_.getAbsolutePath).mkString(":")
+ // val sbtClasspath : String = files.map(x => x.getAbsolutePath).mkString(":")
+  println("Set SBT classpath to 'sbt-classpath' environment variable" + sbtClasspath)
+  System.setProperty("c", sbtClasspath)
+}
 
+// compile  <<= (compile in Compile).dependsOn(sbtcp)
+run <<= (run in Runtime).dependsOn(sbtcp)
 
-
-
+//fork := true
