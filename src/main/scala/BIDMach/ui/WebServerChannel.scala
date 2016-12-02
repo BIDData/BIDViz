@@ -73,6 +73,7 @@ class WebServerChannel extends NetSink.Channel {
   }
 
   override def push(ipass: Int, mats: Array[Mat]): Unit = {
+    println("push is called")
     for (f <- funcList) {
       val result = f(mats)
       if (server.func != null) {

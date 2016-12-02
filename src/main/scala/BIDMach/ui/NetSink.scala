@@ -17,6 +17,7 @@ class NetSink(override val opts:NetSink.Opts = new NetSink.Options) extends MatS
   }
   
   override def put = {
+    println("NetSink.put")
     blocks += omats.map(MatSink.copyCPUmat);
     colsdone += omats(0).ncols;
     if (colsdone >= opts.ofcols) {
@@ -31,6 +32,7 @@ class NetSink(override val opts:NetSink.Opts = new NetSink.Options) extends MatS
   }
   
   def mergeSaveBlocks = {
+    println("NetSink.mergeSaveBlocks")
     mergeBlocks
     if (blocks.size > 0) {
         if (opts.channel != null)
