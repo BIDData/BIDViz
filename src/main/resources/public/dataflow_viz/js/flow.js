@@ -27,7 +27,8 @@ function requestData() {
 
 function update(data){
     var object=$.parseJSON(data);
-    var point=[object.x, object.y];
+    var point=[Number(object.ipass), Number(object.value)];
+    console.log(point)
     var series=chart.series[0];
     var shift=series.data.length>40;
     chart.series[0].addPoint(point,true,shift);

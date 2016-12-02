@@ -1,0 +1,34 @@
+import BIDMach.models.KMeans.MatOptions
+
+import BIDMat.{Mat,SBMat,CMat,DMat,FMat,IMat,HMat,GMat,GIMat,GSMat,SMat,SDMat}
+import BIDMat.MatFunctions._
+import BIDMat.SciFunctions._
+import BIDMach.datasources._
+import BIDMach.datasinks._
+import BIDMach.updaters._
+import BIDMach._
+import BIDMach.ui.NetSink
+import BIDMach.ui.WebServerChannel
+
+var datasink = new NetSink()
+datasink.opts.names = Array("name1", "name2")
+datasink.opts.channel = new WebServerChannel
+datasink.opts.ofcols = 2000
+System.in.read()
+
+
+val mat0 = rand(100, 100000)
+val opts = new MatOptions
+opts.dim = 256
+opts.batchSize = math.min(100000, mat0.ncols/30 + 1)
+opts.npasses = 1000
+val nn = new Learner(
+        new MatSource(Array(mat0:Mat), opts), 
+        new KMeans(opts), 
+        null,
+        new Batch(opts), 
+        null, 
+      //  datasink,  
+        opts)
+nn.opts.publishSink = datasink
+nn.train

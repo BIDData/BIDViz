@@ -27,6 +27,11 @@ class NetSink(override val opts:NetSink.Opts = new NetSink.Options) extends MatS
     }
   }
 
+  override def put(ipass: Int, mats:Array[Mat]) = {
+    if (opts.channel != null)
+      opts.channel.push(ipass, mats)
+  }
+
   override def close () = {
     mergeSaveBlocks;
   }
