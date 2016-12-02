@@ -4,11 +4,11 @@ import BIDMat.SciFunctions.variance
 import BIDMat.{FMat, Mat, TMat}
 import play.api.routing.sird
 
-//import scala.reflect.runtime.universe
-//import scala.tools.reflect.ToolBox
-//import java.io.File
+import scala.reflect.runtime.universe
+import scala.tools.reflect.ToolBox
+import java.io.File
 
-// import scala.reflect.internal.util.ScalaClassLoader.URLClassLoader
+import scala.reflect.internal.util.ScalaClassLoader.URLClassLoader
 // import play.core.server.ServerProcess._
 import BIDMat.Mat
 import BIDMat.TMat
@@ -24,6 +24,7 @@ class WebServerChannel extends NetSink.Channel {
   var funcList: List[Function[Array[Mat], Mat]]
     = List( WebServerChannel.arraymean _) // Model=>Mat
   var server = LocalWebServer.mkNewServer()
+  var prevPass = -1
   // server.startServer()
 
   def convertToString(ipass: Int, result: Mat) =
@@ -48,19 +49,17 @@ class WebServerChannel extends NetSink.Channel {
       | scala.reflect.classTag[%s].runtimeClass
     """.stripMargin
 
-//  def evaluateCodeToFunction(code: String): Function[Array[Mat], Mat] = {
-//    val completeCode = codeTemplate.format("Classname", code, "Classname")
-//    println(completeCode)
-//    val classloader = ClassLoader.getSystemClassLoader
-//    // val classloader = getClass.getClassLoader
-//    // val classloader = new URLClassLoader
-//    val cm = universe.runtimeMirror(classloader)
-//    val tb = cm.mkToolBox()
-//    val clazz = tb.compile(tb.parse(completeCode))().asInstanceOf[Class[_]]
-//    val ctor = clazz.getDeclaredConstructors()(0)
-//    val instance = ctor.newInstance().asInstanceOf[Function[Array[Mat], Mat]]
-//    return instance
-//  }
+  def evaluateCodeToFunction(code: String): Function[Array[Mat], Mat] = {
+    val completeCode = codeTemplate.format("Classname", code, "Classname")
+    println(completeCode)
+    val classloader = ClassLoader.getSystemClassLoader
+    val cm = universe.runtimeMirror(classloader)
+    val tb = cm.mkToolBox()
+    val clazz = tb.compile(tb.parse(completeCode))().asInstanceOf[Class[_]]
+    val ctor = clazz.getDeclaredConstructors()(0)
+    val instance = ctor.newInstance().asInstanceOf[Function[Array[Mat], Mat]]
+    return instance
+  }
 
   def fixClassPath() = {
 
@@ -72,7 +71,10 @@ class WebServerChannel extends NetSink.Channel {
       val result = f(mats)
       if (server.func != null) {
         println("server.func is not null", ipass)
-        server.func(convertToString(ipass, result))
+        if (ipass > prevPass) {
+          server.func(convertToString(ipass, result))
+          prevPass = ipass
+        }
       }
     }
   }
@@ -85,7 +87,10 @@ object WebServerChannel {
   def arraymean(mats: Array[Mat]): Mat = {
     var m:Mat = null
     for (i <- mats) {
-       m = variance(i(?))
+       i match {
+        case i:TMat => m = variance(i.tiles(0)(?))
+        case i:Mat => m = variance(i(?))
+      }
     }
     m
   }

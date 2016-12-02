@@ -55,6 +55,12 @@
             <artifactId>play-netty-server_2.11</artifactId>
             <version>2.5.9</version>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/org.scala-lang/scala-compiler -->
+        <dependency>
+            <groupId>org.scala-lang</groupId>
+            <artifactId>scala-compiler</artifactId>
+            <version>2.11.8</version>
+        </dependency>
     </dependencies>
     <build>
         <plugins>
