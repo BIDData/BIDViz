@@ -15,7 +15,6 @@ import BIDMat.SciFunctions.variance
 import BIDMat.MatFunctions.{ones, zeros}
 import BIDMat.MatFunctions.?
 import BIDMat.MatFunctions.ones
-import com.googlecode.scalascriptengine.{Config, _}
 import java.io.File
 import javax.script.ScriptEngineManager
 
