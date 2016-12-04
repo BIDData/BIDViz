@@ -12,6 +12,5 @@ $name='random';
 
 // Create a PHP array and echo it as JSON
 $ret = array($name, $x, $y);
-
 //print $ret;
 echo json_encode($ret);
