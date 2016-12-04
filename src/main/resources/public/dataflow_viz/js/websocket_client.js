@@ -28,8 +28,8 @@ function connectToWS() {
     };
 
     function sendMsg() {
-        var message = document.getElementById("myMessage").value;
-        myWebSocket.send(message);
+        // var message = document.getElementById("myMessage").value;
+        // myWebSocket.send(message);
     }
 
     function closeConn() {
