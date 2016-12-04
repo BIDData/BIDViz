@@ -27,16 +27,16 @@
     <script src="js/websocket_client.js"></script>
     <script src="js/flow.js"></script>
 
-<style>
-    .navbar-default .navbar-nav > li > a:hover, .navbar-default .navbar-nav > li > a:focus {
-        color: #8c8c8c;
-    }
-</style>
+    <style>
+        .navbar-default .navbar-nav > li > a:hover, .navbar-default .navbar-nav > li > a:focus {
+            color: #8c8c8c;
+        }
+    </style>
 
 </head>
 
 <body id="page-top">
-<nav id="mainNav" class="navbar navbar-default navbar-fixed-top">
+<nav id="mainNav" class="navbar navbar-inverse navbar-fixed-top">
     <div class="container-fluid">
 
         <!-- Brand and toggle get grouped for better mobile display -->
@@ -72,10 +72,18 @@
 </nav>
 
 
-<section id="graph" style="padding-top: 20px">
-    <div id="container"
-         style="min-width: 310px; height: 400px; padding-top: 30px;margin: 0 auto"></div>
-    <div class="col-lg-2 col-lg-offset-5"><a class="btn btn-primary btn-xl" id="start">Get Data</a></div>
+<section id="graph" style="margin-top: 10px">
+
+    <div class="graph_suit" >
+        <div class="col-md-6 " id="container"
+             style="min-width: 310px; height: 450px; margin: 0 auto">
+        </div>
+        <div class="col-md-1 col-md-offset-2   button_suit"><a class="btn btn-primary btn-xl" id="start">Get Data</a></div>
+    </div>
+
+
+
+
 </section>
 
 

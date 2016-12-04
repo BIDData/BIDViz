@@ -43,9 +43,9 @@ $(document).ready(function() {
         chart: {
             renderTo: 'container',
             defaultSeriesType: 'spline',
-//            events: {
-//                load: requestData
-//            }
+           events: {
+               load: requestData
+           }
         },
         title: {
             text: 'Training Data',

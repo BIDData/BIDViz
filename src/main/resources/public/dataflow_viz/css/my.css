@@ -4,6 +4,19 @@
     color: #8c8c8c;
 }
 
+
 .highcharts-title{
     font-size: 30px;
+}
+
+.graph_suit{
+    position: relative;
+    height: 500px;
+    width: auto;
+}
+
+.button_suit{
+    position: absolute;
+    bottom: 0;
+    /*margin: 0 auto;*/
 }
