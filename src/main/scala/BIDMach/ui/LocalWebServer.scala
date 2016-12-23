@@ -74,7 +74,7 @@ abstract class LocalWebServer {
 }
 
 object  LocalWebServer {
-  def mkNewServer():LocalWebServer = {
+  def mkNewServer(webServerChannel: WebServerChannel):LocalWebServer = {
     //Examples about using the LocalWebServer
     //It will start a simple web server supporting WebSocket and static file serving
     val server = new LocalWebServer {
@@ -99,6 +99,18 @@ object  LocalWebServer {
               }
               println("websocket")
               (in,out)
+          }
+        case POST(p"/request") =>
+          Action { request =>
+            println(request.body)
+            request.body.asJson match {
+              case None =>
+                println("bad content")
+              case Some(content) =>
+                webServerChannel.handleRequest(content)
+                println(content)
+            }
+            Results.Ok("tu mama")
           }
 
         case GET(p"/assets/$file*")=>
