@@ -5,6 +5,7 @@ import BIDMat.{FMat, Mat, TMat}
 import play.api.libs.json.JsValue
 import play.api.routing.sird
 
+import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 import scala.reflect.runtime.universe
 import scala.tools.reflect.ToolBox
@@ -24,16 +25,21 @@ import javax.script.ScriptEngineManager
   * Created by han on 11/30/16.
   */
 class WebServerChannel extends NetSink.Channel {
+  class StatFunction(var name: String, var code: String, var funcPointer: Function[Array[Mat], Mat]) {}
+
+  var stats: Map[String, StatFunction] = Map("variance" -> new StatFunction(
+    "variance", "", WebServerChannel.arraymean _));
   var funcList: ListBuffer[Function[Array[Mat], Mat]]
     = ListBuffer(WebServerChannel.arraymean _) // Model=>Mat
   var server = LocalWebServer.mkNewServer(this)
   var prevPass = -1
   // server.startServer()
 
-  def convertToString(ipass: Int, result: Mat) =
+  def convertToString(ipass: Int, result: Mat, name: String) =
   //for now assumes 1x1
     s"""
        | {
+       |     "name": "$name",
        |     "ipass": "$ipass",
        |     "value": "$result"
        | }
@@ -47,19 +53,22 @@ class WebServerChannel extends NetSink.Channel {
     println(code)
 
     funcList.append(function)
+    stats = stats + (name -> new StatFunction(name, code, function))
   }
 
   override def push(ipass: Int, mats: Array[Mat]): Unit = {
     println("push is called", server.func, funcList.length)
-    for (f <- funcList) {
-      val result = f(mats)
-      if (server.func != null) {
-        println("server.func is not null", ipass)
+    if (server.func != null) {
+      for ((name, f) <- stats) {
+        val result = f.funcPointer(mats)
         if (ipass > prevPass) {
-          server.func(convertToString(ipass, result))
-          prevPass = ipass
+          println("current func", name, System.identityHashCode(stats))
+          val message = convertToString(ipass, result, name)
+          println(message)
+          server.func(message)
         }
       }
+      prevPass = ipass
     }
   }
 }

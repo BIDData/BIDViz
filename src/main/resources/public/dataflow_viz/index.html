@@ -84,6 +84,11 @@
         </div>
     </div>
 </section>
+<form>
+    name: <input id="name" />
+    code: <textarea id="code"></textarea>
+    submit: <button id="submit">Submit</button>
+</form>
 
 <section id="graph" style="padding-top: 50px;">
     <!--<div class="graph_suit col-md-6">-->
@@ -102,8 +107,20 @@
 <script src="https://code.highcharts.com/highcharts.js"></script>
 <script src="https://code.highcharts.com/modules/exporting.js"></script>
 <script src="js/websocket_client.js"></script>
-<script src="js/flow.js"></script>
+<!-- script src="js/flow.js"></script -->
 <script src="js/bootstrap.js"></script>
+<script src="js/viz.js"></script>
+<script>
+    $(document).ready(function() {
+        window.viz = new VizManager('graph');
+        $('#submit').click(function(event) {
+            event.preventDefault();
+            var name = $('#name').val();
+            var code = $('#code').val();
+            console.log(window.viz.addStat(name, code));
+        });
+    });
+</script>
 
 </body>
 </html>

@@ -94,7 +94,6 @@ object  LocalWebServer {
                   println(msg)
                   // the Enumerator returned by Concurrent.broadcast subscribes to the channel and will
                   // receive the pushed messages
-                  channel.push("{\"x\": 0, \"y\": 0 }")
                   func = channel push _
               }
               println("websocket")
@@ -110,7 +109,7 @@ object  LocalWebServer {
                 webServerChannel.handleRequest(content)
                 println(content)
             }
-            Results.Ok("tu mama")
+            Results.Ok("")
           }
 
         case GET(p"/assets/$file*")=>
