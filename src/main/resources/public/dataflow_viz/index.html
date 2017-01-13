@@ -57,16 +57,8 @@
         <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
             <ul class="nav navbar-nav navbar-right">
                 <li>
-                    <a class="page-scroll" href="#graph">Graph</a>
-                </li>
-                <li>
-                    <a class="page-scroll" href="#command">Command</a>
-                </li>
-                <li>
-                    <a class="page-scroll" href="#about">About</a>
-                </li>
-                <li>
-                    <a class="page-scroll" id="more" href="#more">More</a>
+                    <a class="page-scroll" id="pause" href="#">Pause</a>
+                    <a class="page-scroll" id="setVar" href="#">Set var</a>
                 </li>
             </ul>
         </div>
@@ -99,11 +91,16 @@
             </section>
         </div>
         <div class="col-sm-6">
-            <pre> def f(mat: Array[Mat]): Mat = {</pre>
-            <div id="code"></div>
-            <pre>}</pre>
-            <input id="name" placeholder="name"/>
-            <button id="submit">Submit</button>
+            <div class="row">
+                <ul id="parameters"></ul>
+            </div>
+            <div class="row">
+                <pre> def f(mat: Array[Mat]): Mat = {</pre>
+                <div id="code"></div>
+                <pre>}</pre>
+                <input id="name" placeholder="name"/>
+                <button id="submit">Submit</button>
+            </div>
         </div>
     </div>
 </div>
@@ -120,7 +117,7 @@
 <script>
     $(document).ready(function() {
         window.viz = new VizManager('graph');
-
+        window.paused = false;
         window.editor = ace.edit("code");
         window.editor.setTheme("ace/theme/monokai");
         window.editor.getSession().setMode("ace/mode/scala");
@@ -131,6 +128,22 @@
             var code = editor.getValue();
             console.log(window.viz.addStat(name, code));
         });
+
+        $('#pause').click(function(event) {
+            event.preventDefault();
+            window.paused = !window.paused;
+            window.viz.pauseTraining(window.paused, function() {
+                $('#pause').html(window.paused ? "Resume" : "Pause");
+            });
+        });
+
+        $('#setVar').click(function(event) {
+            event.preventDefault();
+            window.viz.modifyParam('pstep', '0.02', function() {
+                $('#pause').html(window.paused ? "Resume" : "Pause");
+            });
+        });
+
     });
 </script>
 

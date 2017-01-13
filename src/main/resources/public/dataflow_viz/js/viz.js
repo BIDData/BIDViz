@@ -1,3 +1,18 @@
+function postData(data, callback) {
+    $.ajax({
+        method: 'POST',
+        url: '/request',
+        contentType: 'application/json',
+        data: JSON.stringify(data),
+        success: function(event) {
+            console.log(event);
+            if (callback) {
+                callback(event);
+            }
+        }
+    });
+}
+
 function createGraphSuit(id) {
     var graph_suit = $("<div></div>").addClass("graph_suit col-md-6").css("margin-bottom", "60px");
     var graph = $("<div></div>").attr("id", id).css("height", "450px").css("margin", "0 auto");
@@ -68,20 +83,31 @@ VizManager.prototype.connect = function() {
 }
 
 VizManager.prototype.onmessage = function(event) {
-    var object = $.parseJSON(event.data);
-    var name = object.name;
-    var point = [Number(object.ipass), Number(object.value)];
-    console.log(event.data);
-    if (!(name in this.allCharts)) {
-        // create new
-        var graphSuit = createGraphSuit(name);
-        $('#' + this.root).append(graphSuit);
-        var chart = createHighcharts(name, name);
-        this.allCharts[name] = chart;
+    var msg = $.parseJSON(event.data);
+    if (msg.msgType === 'data_point') {
+        var object = msg.content;
+        var name = object.name;
+        var point = [Number(object.ipass), Number(object.value)];
+        console.log(event.data);
+        if (!(name in this.allCharts)) {
+            // create new
+            var graphSuit = createGraphSuit(name);
+            $('#' + this.root).append(graphSuit);
+            var chart = createHighcharts(name, name);
+            this.allCharts[name] = chart;
+        }
+        var series = this.allCharts[name].series[0];
+        var shift = series.data.length > 40;
+        series.addPoint(point, true, shift);
+    } else {
+        console.log(msg);
+        $('#parameters').html("");
+        for (var key in msg.content) {
+            var item = $('<li>')
+            item.html(key + ': ' + msg.content[key]);
+            $('#parameters').append(item);
+        }
     }
-    var series = this.allCharts[name].series[0];
-    var shift = series.data.length > 40;
-    series.addPoint(point, true, shift);
 }
 
 VizManager.prototype.onopen = function(event) {
@@ -92,16 +118,31 @@ VizManager.prototype.onclose = function(event) {}
 VizManager.prototype.onerror = function(event) {}
 VizManager.prototype.addStat = function(name, code) {
     var data = {
-        name: name,
-        code: code
-    };
-    $.ajax({
-        method: 'POST',
-        url: '/request',
-        contentType: 'application/json',
-        data: JSON.stringify(data),
-        success: function(event) {
-            console.log(event);
+        methodName: "addFunction",
+        content: {
+            name: name,
+            code: code
         }
-    });
+    };
+    postData(data);
 }
+
+VizManager.prototype.pauseTraining = function(value, callback) {
+    var data = {
+        methodName: "pauseTraining",
+        content: value
+    };
+    postData(data, callback);
+}
+
+VizManager.prototype.modifyParam = function(name, value) {
+    var data = {
+        methodName: "modifyParam",
+        content: {
+            name: name,
+            value: value
+        }
+    };
+    postData(data);
+}
+

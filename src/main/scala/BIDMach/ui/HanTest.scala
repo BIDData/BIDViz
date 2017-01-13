@@ -21,7 +21,6 @@ object HanTest {
   def main(args:Array[String]): Unit = {
     var datasink = new NetSink()
     datasink.opts.names = Array("name1", "name2")
-    datasink.opts.channel = new WebServerChannel
     datasink.opts.ofcols = 2000
     System.in.read()
     val mat0 = rand(100, 100000)

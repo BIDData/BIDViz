@@ -12,9 +12,7 @@ import BIDMach.ui.WebServerChannel
 
 var datasink = new NetSink()
 datasink.opts.names = Array("name1", "name2")
-datasink.opts.channel = new WebServerChannel
 datasink.opts.ofcols = 2000
-System.in.read()
 
 
 val mat0 = rand(100, 100000)
@@ -30,5 +28,7 @@ val nn = new Learner(
         null, 
       //  datasink,  
         opts)
+datasink.opts.channel = new WebServerChannel(nn)
 nn.opts.publishSink = datasink
+
 nn.train
