@@ -31,11 +31,7 @@ class WebServerChannel(val learner: Learner) extends NetSink.Channel {
   var funcList: ListBuffer[Array[Mat] => Mat]
     = ListBuffer(WebServerChannel.arraymean _) // Model=>Mat
   val interestingStats = List(
-    //("Model.Opts", learner.mopts),
     ("Learner.Opts", learner.opts)
-    //("Mixin.Opts", learner.ropts),
-    //("Updater.Opts", learner.uopts),
-    //("DataSource.Opts", learner.dopts)
   )
   var server = LocalWebServer.mkNewServer(this)
   var prevPass = -1
@@ -48,15 +44,6 @@ class WebServerChannel(val learner: Learner) extends NetSink.Channel {
        |  "content": $content
        |}
      """.stripMargin
-  def convertToString(ipass: Int, result: Mat, name: String): String =
-  //for now assumes 1x1
-    mkJson("data_point", s"""
-       | {
-       |     "name": "$name",
-       |     "ipass": "$ipass",
-       |     "value": "$result"
-       | }
-      """.stripMargin)
 
   def addNewFunction(requestJson: JsValue) = {
     val name = (requestJson \ "name").as[String]
@@ -69,7 +56,6 @@ class WebServerChannel(val learner: Learner) extends NetSink.Channel {
 
   def pauseTraining(args: JsValue) = {
     learner.paused = args.as[Boolean]
-    println("lloook here", learner.paused)
   }
 
   def modifyParam(args: JsValue): Unit = {
