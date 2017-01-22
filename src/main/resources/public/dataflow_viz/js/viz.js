@@ -20,13 +20,16 @@ function createGraphSuit(id) {
     return graph_suit;
 }
 
-function createHighcharts(id, name) {
-    return new Highcharts.Chart({
+// Common interface for charts is addPoint( point ) where point is a matrix of conforming shape
+function LineChart(id, name) {
+    this.id = id;
+    this.name = name;
+    this.shape = [1,1];
+    this.chart = new Highcharts.Chart({
         chart: {
             renderTo: id,
             defaultSeriesType: 'spline',
             events: {
- //               load: requestData
             }
         },
         title: {
@@ -51,10 +54,106 @@ function createHighcharts(id, name) {
             }
         },
         series: [{
-            name: name,
             data: []
         }]
     });
+}
+
+// point is (ipass, point)
+LineChart.prototype.addPoint = function(ipass, sizes, values) {
+    var series = this.chart.series[0];
+    var shift = series.data.length > 40;
+    console.log("values", values);
+    var point = [ipass, +(values[0])];
+    series.addPoint(point, true, shift);
+}
+
+function Histogram(id, name) {
+    this.id = id;
+    this.name = name;
+    this.shape = [1,1];
+    this.pointSet = [];
+    this.step = 10;
+    this.chart = new Highcharts.Chart({
+        chart: {
+            type: "column",
+            renderTo: id,
+            defaultSeriesType: 'spline',
+            events: {
+            }
+        },
+        title: {
+            text: name,
+            style: {
+                color: '#000',
+                fontWeight: 'bold',
+                fontSize: "20px",
+            }
+        },
+        xAxis: {
+            type: 'linear',
+            tickPixelInterval: 40,
+            maxZoom: 40
+        },
+        yAxis: {
+            minPadding: 0.2,
+            maxPadding: 0.2,
+            title: {
+                text: 'Value',
+                margin: 80
+            }
+        },
+        series: [{
+            data: []
+        }]
+    });
+}
+
+    function arrToHistogram(data, binsize) {
+        var histo = {},
+            x,
+            i,
+            arr = [];
+
+        var max = Math.max(data);
+        var min = Math.min(data);
+        var step = (max - min) / binsize;
+        if (step < 0.01) {
+            return;
+        }
+
+        // Group down
+        for (i = 0; i < data.length; i++) {
+            x = Math.floor(data[i] / step) * step;
+            if (!histo[x]) {
+                histo[x] = 0;
+            }
+            histo[x]++;
+        }
+
+        // Make the histo group into an array
+        for (x in histo) {
+            if (histo.hasOwnProperty((x))) {
+                arr.push([parseFloat(x), histo[x]]);
+            }
+        }
+
+        // Finally, sort the array
+        arr.sort(function (a, b) {
+            return a[0] - b[0];
+        });
+
+        return arr;
+    }
+
+Histogram.prototype.addPoint = function(point) {
+    var series = this.chart.series[0];
+    var shift = series.data.length > 40;
+    this.pointSet.push(point[1]);
+    this.binsize = 10;
+    var newBins = arrToHistogram(this.pointSet, this.binsize);
+    // console.log('newbin', newBins);
+    series.setData(newBins);
 }
 
 function VizManager(root) {
@@ -82,23 +181,28 @@ VizManager.prototype.connect = function() {
     return true;
 }
 
+
+//        Json.obj(
+//          "name" -> name,
+//        "ipass" -> ipass,
+//        "shape" -> shape,
+//        "data" -> data
+//      )
+
 VizManager.prototype.onmessage = function(event) {
     var msg = $.parseJSON(event.data);
     if (msg.msgType === 'data_point') {
         var object = msg.content;
         var name = object.name;
-        var point = [Number(object.ipass), Number(object.value)];
-        console.log(event.data);
         if (!(name in this.allCharts)) {
             // create new
             var graphSuit = createGraphSuit(name);
             $('#' + this.root).append(graphSuit);
-            var chart = createHighcharts(name, name);
+            // var chart = new LineChart(name, name);
+             var chart = new LineChart(name, name);
             this.allCharts[name] = chart;
         }
-        var series = this.allCharts[name].series[0];
-        var shift = series.data.length > 40;
-        series.addPoint(point, true, shift);
+        var series = this.allCharts[name].addPoint(object.ipass, object.sizes, object.data);
     } else {
         console.log(msg);
         $('#parameters').html("");
@@ -116,7 +220,7 @@ VizManager.prototype.onopen = function(event) {
 }
 VizManager.prototype.onclose = function(event) {}
 VizManager.prototype.onerror = function(event) {}
-VizManager.prototype.addStat = function(name, code) {
+VizManager.prototype.addStat = function(name, code, callback) {
     var data = {
         methodName: "addFunction",
         content: {
@@ -124,7 +228,7 @@ VizManager.prototype.addStat = function(name, code) {
             code: code
         }
     };
-    postData(data);
+    postData(data, callback);
 }
 
 VizManager.prototype.pauseTraining = function(value, callback) {

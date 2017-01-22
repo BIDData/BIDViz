@@ -87,15 +87,17 @@
 <div class="container">
     <div class="row">
         <div class="col-sm-6">
-            <section id="graph" style="padding-top: 50px; overflow-x:scroll;">
+            <section id="graph" style="padding-top: 50px; overflow-y:scroll; height: 1000px">
             </section>
         </div>
         <div class="col-sm-6">
-            <div class="row">
-                <ul id="parameters"></ul>
+            <div class=""row>
+                <div class="row">
+                    <ul id="parameters" style="overflow-y: scroll; height:250px; padding-top:50px;"></ul>
+                </div>
             </div>
             <div class="row">
-                <pre> def f(mat: Array[Mat]): Mat = {</pre>
+                <pre> def f(mats: Array[Mat]): Mat = {</pre>
                 <div id="code"></div>
                 <pre>}</pre>
                 <input id="name" placeholder="name"/>
@@ -126,7 +128,10 @@
             event.preventDefault();
             var name = $('#name').val();
             var code = editor.getValue();
-            console.log(window.viz.addStat(name, code));
+            console.log(window.viz.addStat(name, code, function() {
+                window.editor.setValue('');
+                $('#name').val('');
+            }));
         });
 
         $('#pause').click(function(event) {

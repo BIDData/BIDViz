@@ -1,28 +1,23 @@
 package BIDMach.ui
 
+import BIDMach.ui.Message.{contentWrite, messageWrite}
+import BIDMach.ui.Message
 import BIDMach.Learner
-import BIDMat.SciFunctions.variance
-import BIDMat.{FMat, Mat, TMat}
-import play.api.libs.json.{JsObject, JsValue, Json}
-import play.api.routing.sird
-
-import scala.collection.mutable
-import scala.collection.mutable.ListBuffer
-import scala.reflect.runtime.universe
-import scala.tools.reflect.ToolBox
-import scala.reflect.internal.util.ScalaClassLoader.URLClassLoader
-// import play.core.server.ServerProcess._
 import BIDMat.Mat
 import BIDMat.TMat
+import BIDMat.IMat
 import BIDMat.SciFunctions.variance
-import BIDMat.MatFunctions.{ones, zeros}
 import BIDMat.MatFunctions.?
 import BIDMat.MatFunctions.ones
-import java.io.File
-import javax.script.ScriptEngineManager
+import BIDMat.MatFunctions._
+import BIDMat.SciFunctions._
+import BIDMach.Learner
 
+import play.api.libs.json.{JsObject, JsValue, Json}
+import play.api.routing.sird
 import scala.reflect.runtime.universe._
 import scala.collection.mutable.{Map => MMap}
+import scala.collection.mutable.ListBuffer
 
 
 /**
@@ -36,11 +31,11 @@ class WebServerChannel(val learner: Learner) extends NetSink.Channel {
   var funcList: ListBuffer[Array[Mat] => Mat]
     = ListBuffer(WebServerChannel.arraymean _) // Model=>Mat
   val interestingStats = List(
-    ("Model.Opts", learner.mopts),
-    ("Learner.Opts", learner.opts),
-    ("Mixin.Opts", learner.ropts),
-    ("Updater.Opts", learner.uopts),
-    ("DataSource.Opts", learner.dopts)
+    //("Model.Opts", learner.mopts),
+    ("Learner.Opts", learner.opts)
+    //("Mixin.Opts", learner.ropts),
+    //("Updater.Opts", learner.uopts),
+    //("DataSource.Opts", learner.dopts)
   )
   var server = LocalWebServer.mkNewServer(this)
   var prevPass = -1
@@ -80,10 +75,11 @@ class WebServerChannel(val learner: Learner) extends NetSink.Channel {
   def modifyParam(args: JsValue): Unit = {
     val key = (args \ "name").as[String]
     val value = (args \ "value").as[String]
-    WebServerChannel.setValue(learner.opts, key, value)
+
+    WebServerChannel.setValue(learner.opts, key, value.toDouble)
   }
 
-  def handleRequest(requestJson: JsValue) = {
+  def handleRequest(requestJson: JsValue):String = {
     val methodName = (requestJson \ "methodName").as[String]
     val values = requestJson \ "content"
     methodName match {
@@ -96,6 +92,7 @@ class WebServerChannel(val learner: Learner) extends NetSink.Channel {
       case _ =>
         error("method not found")
     }
+    ""
   }
 
   def computeStatsToJson(name:String, x: AnyRef): String = {
@@ -135,8 +132,10 @@ class WebServerChannel(val learner: Learner) extends NetSink.Channel {
       for ((name, f) <- stats) {
         val result = f.funcPointer(mats)
         if (ipass > prevPass) {
-          val message = convertToString(ipass, result, name)
-          server.func(message)
+          val (sizes, data) = WebServerChannel.matToArr(result)
+          val content = DataPointContent(name, ipass, sizes, data)
+          val message = Message("data_point", content)
+          server.func(Json.toJson(message).toString)
           pushOutStats()
         }
       }
@@ -146,6 +145,14 @@ class WebServerChannel(val learner: Learner) extends NetSink.Channel {
 }
 
 object WebServerChannel {
+  def matToArr(m: Mat): (Seq[Int], Seq[String]) = {
+    val row = m.nrows
+    val col = m.ncols
+    val result = (for (i <- 0 until row;
+                       j <- 0 until col) yield s"${m(i, IMat(j))}")
+    (Seq(row, col), result)
+  }
+
   def setValue(obj: AnyRef, name: String, value: Any): Unit = {
     obj.getClass.getMethods.find(_.getName == name + "_$eq").get.invoke(obj, value.asInstanceOf[AnyRef])
   }
