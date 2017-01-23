@@ -25,10 +25,8 @@ import scala.collection.mutable.ListBuffer
   * Created by han on 11/30/16.
   */
 class WebServerChannel(val learner: Learner) extends Learner.LearnerObserver {
-  class StatFunction(var name: String, var code: String, var funcPointer: (Model, Array[Mat]) => Mat) {}
-
   var stats: Map[String, StatFunction] = Map("variance" -> new StatFunction(
-    "variance", "", WebServerChannel.arraymean _));
+    "variance", "", 1, "LineChart", WebServerChannel.arraymean _));
   val interestingStats = List(
     ("Learner.Opts", learner.opts)
   )
@@ -47,9 +45,11 @@ class WebServerChannel(val learner: Learner) extends Learner.LearnerObserver {
   def addNewFunction(requestJson: JsValue) = {
     val name = (requestJson \ "name").as[String]
     val code = (requestJson \ "code").as[String]
+    val size = (requestJson \ "size").as[Int]
+    val theType = (requestJson \ "type").as[String]
     val function = Eval.evaluateCodeToFunction(code)
     println(code)
-    stats = stats + (name -> new StatFunction(name, code, function))
+    stats = stats + (name -> new StatFunction(name, code, size, theType, function))
   }
 
   def pauseTraining(args: JsValue) = {

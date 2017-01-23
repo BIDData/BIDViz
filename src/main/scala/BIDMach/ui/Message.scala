@@ -1,6 +1,8 @@
 package BIDMach.ui
 
 
+import BIDMach.models.Model
+import BIDMat.Mat
 import play.api.libs.json.{Json, Writes}
 
 /**
@@ -15,8 +17,10 @@ case class DataPointContent(name: String, ipass: Int,
 
 case class ParameterContent(content: Map[String, String]) extends MessageContent {}
 
-object Message {
+case class StatFunction(name: String, code: String, size: Int,
+                        theType: String, funcPointer: (Model, Array[Mat]) => Mat) extends MessageContent{}
 
+object Message {
   implicit val contentWrite = new Writes[MessageContent] {
     def writes(content: MessageContent) = content match {
       case DataPointContent(name, ipass, shape, data) =>

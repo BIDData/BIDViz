@@ -97,10 +97,12 @@
                 </div>
             </div>
             <div class="row">
-                <pre> def f(mats: Array[Mat]): Mat = {</pre>
+                <pre> def f(model: Model, minibatch: Array[Mat]): Mat = {</pre>
                 <div id="code"></div>
                 <pre>}</pre>
                 <input id="name" placeholder="name"/>
+                <input id="size" placeholder="size"/>
+                <input id="type" placeholder="type"/>
                 <button id="submit">Submit</button>
             </div>
         </div>
@@ -127,10 +129,19 @@
         $('#submit').click(function(event) {
             event.preventDefault();
             var name = $('#name').val();
+            var size = Number($('#size').val());
+            var type = $('#type').val();
             var code = editor.getValue();
-            console.log(window.viz.addStat(name, code, function() {
+            var obj = {
+                name: name,
+                code: code,
+                size: size,
+                type: type
+            };
+            console.log(window.viz.addStat(obj, function() {
                 window.editor.setValue('');
                 $('#name').val('');
+                viz.createGraph(name, type, size);
             }));
         });
 

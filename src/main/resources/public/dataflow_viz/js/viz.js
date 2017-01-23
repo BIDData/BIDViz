@@ -21,10 +21,17 @@ function createGraphSuit(id) {
 }
 
 // Common interface for charts is addPoint( point ) where point is a matrix of conforming shape
-function LineChart(id, name) {
+function LineChart(id, name, size) {
     this.id = id;
     this.name = name;
     this.shape = [1,1];
+    this.size = size;
+    series = [];
+    for (var i = 0; i < size; i++) {
+        series.push({
+            data: []
+        });
+    }
     this.chart = new Highcharts.Chart({
         chart: {
             renderTo: id,
@@ -53,19 +60,19 @@ function LineChart(id, name) {
                 margin: 80
             }
         },
-        series: [{
-            data: []
-        }]
+        series: series
     });
 }
 
 // point is (ipass, point)
 LineChart.prototype.addPoint = function(ipass, sizes, values) {
-    var series = this.chart.series[0];
-    var shift = series.data.length > 40;
+    var series = this.chart.series;
     console.log("values", values);
-    var point = [ipass, +(values[0])];
-    series.addPoint(point, true, shift);
+    for (var i = 0; i < this.size; i++) {
+        var shift = series[i].data.length > 40;
+        var point = [ipass, +(values[i])];
+        series[i].addPoint(point, true, shift);
+    }
 }
 
 function Histogram(id, name) {
@@ -199,7 +206,7 @@ VizManager.prototype.onmessage = function(event) {
             var graphSuit = createGraphSuit(name);
             $('#' + this.root).append(graphSuit);
             // var chart = new LineChart(name, name);
-             var chart = new LineChart(name, name);
+             var chart = new LineChart(name, name, 1);
             this.allCharts[name] = chart;
         }
         var series = this.allCharts[name].addPoint(object.ipass, object.sizes, object.data);
@@ -214,19 +221,32 @@ VizManager.prototype.onmessage = function(event) {
     }
 }
 
+VizManager.prototype.createGraph = function(name, type, size) {
+    var chart;
+    if ((name in this.allCharts)) {
+        return;
+    }
+    var graphSuit = createGraphSuit(name);
+    $('#' + this.root).append(graphSuit);
+    if (type === 'LineChart') {
+        chart = new LineChart(name, name, size);
+    } else if (type === 'Histogram') {
+        chart = new Histogram(name, name, size);
+    }
+    this.allCharts[name] = chart;
+    return chart;
+}
+
 VizManager.prototype.onopen = function(event) {
     console.log("onopen.");
     this.websocket.send("hello");
 }
 VizManager.prototype.onclose = function(event) {}
 VizManager.prototype.onerror = function(event) {}
-VizManager.prototype.addStat = function(name, code, callback) {
+VizManager.prototype.addStat = function(obj, callback) {
     var data = {
         methodName: "addFunction",
-        content: {
-            name: name,
-            code: code
-        }
+        content: obj
     };
     postData(data, callback);
 }
