@@ -12,9 +12,10 @@ import BIDMat.MatFunctions.ones
 import BIDMat.MatFunctions._
 import BIDMat.SciFunctions._
 import BIDMach.Learner
-
+import BIDMach.models.Model
 import play.api.libs.json.{JsObject, JsValue, Json}
 import play.api.routing.sird
+
 import scala.reflect.runtime.universe._
 import scala.collection.mutable.{Map => MMap}
 import scala.collection.mutable.ListBuffer
@@ -23,13 +24,11 @@ import scala.collection.mutable.ListBuffer
 /**
   * Created by han on 11/30/16.
   */
-class WebServerChannel(val learner: Learner) extends NetSink.Channel {
-  class StatFunction(var name: String, var code: String, var funcPointer: Array[Mat] => Mat) {}
+class WebServerChannel(val learner: Learner) extends Learner.LearnerObserver {
+  class StatFunction(var name: String, var code: String, var funcPointer: (Model, Array[Mat]) => Mat) {}
 
   var stats: Map[String, StatFunction] = Map("variance" -> new StatFunction(
     "variance", "", WebServerChannel.arraymean _));
-  var funcList: ListBuffer[Array[Mat] => Mat]
-    = ListBuffer(WebServerChannel.arraymean _) // Model=>Mat
   val interestingStats = List(
     ("Learner.Opts", learner.opts)
   )
@@ -50,7 +49,6 @@ class WebServerChannel(val learner: Learner) extends NetSink.Channel {
     val code = (requestJson \ "code").as[String]
     val function = Eval.evaluateCodeToFunction(code)
     println(code)
-    funcList.append(function)
     stats = stats + (name -> new StatFunction(name, code, function))
   }
 
@@ -113,10 +111,10 @@ class WebServerChannel(val learner: Learner) extends NetSink.Channel {
   }
 
 
-  override def push(ipass: Int, mats: Array[Mat]): Unit = {
+  override def notify(ipass: Int, model: Model, minibatch: Array[Mat]): Unit = {
     if (server.func != null) {
       for ((name, f) <- stats) {
-        val result = f.funcPointer(mats)
+        val result = f.funcPointer(model, minibatch)
         if (ipass > prevPass) {
           val (sizes, data) = WebServerChannel.matToArr(result)
           val content = DataPointContent(name, ipass, sizes, data)
@@ -145,9 +143,9 @@ object WebServerChannel {
   def allOnes(mats: Array[Mat]): Mat = {
     ones(1,1)
   }
-  def arraymean(mats: Array[Mat]): Mat = {
+  def arraymean(model: Model, minibatch: Array[Mat]): Mat = {
     var m:Mat = null
-    for (i <- mats) {
+    for (i <- model.mats) {
        i match {
         case i:TMat => m = variance(i.tiles(0)(?))
         case i:Mat => m = variance(i(?))

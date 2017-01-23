@@ -2,6 +2,9 @@ package BIDMach.ui
 
 
 import java.io.File
+
+import BIDMach.models.Model
+
 import scala.reflect.runtime.universe
 import scala.tools.reflect.ToolBox
 import scala.reflect.internal.util.ScalaClassLoader.URLClassLoader
@@ -16,15 +19,15 @@ object Eval {
       |import BIDMach.models.Model
       |import BIDMat.Mat
       |import BIDMat.MatFunctions._
-      | class %s extends Function[Array[Mat], Mat] {
-      |   override def apply(mats: Array[Mat]): Mat = {
+      | class %s extends Function[(Model, Array[Mat]), Mat] {
+      |   override def apply(model: Model, minibatch: Array[Mat]): Mat = {
       |     %s
       |   }
       | }
       | scala.reflect.classTag[%s].runtimeClass
     """.stripMargin
 
-  def evaluateCodeToFunction(code: String): Function[Array[Mat], Mat] = {
+  def evaluateCodeToFunction(code: String): (Model, Array[Mat]) => Mat = {
 
     var classloader = new URLClassLoader(
       new File("lib").listFiles.filter(_.getName.endsWith(".jar")).map(_.toURL).toSeq,
@@ -35,7 +38,7 @@ object Eval {
     val tb = cm.mkToolBox()
     val clazz = tb.compile(tb.parse(completeCode))().asInstanceOf[Class[_]]
     val ctor = clazz.getDeclaredConstructors()(0)
-    val instance = ctor.newInstance().asInstanceOf[Function[Array[Mat], Mat]]
+    val instance = ctor.newInstance().asInstanceOf[(Model, Array[Mat]) => Mat]
     return instance
   }
 }

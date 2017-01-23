@@ -1,4 +1,18 @@
 # BIDMach_Viz
+
+### Add interactivity to existing BIDMach script
+
+This part assumes that you already have a script for BIDMach. We will use kmeans.ssc 
+in this repository as example.
+
+Steps:
+#### Use an alternative version BIDMach that exposes a field in Learner.Options for datasink
+Please use the BIDMach from this repository 
+
+#### Clone this repository
+
+#### Modify the script to add WebDataSink
+
 ### Interactive Machine Learning toolkit based on BIDMach
 
 #### Install and build
