@@ -2,6 +2,7 @@ package BIDMach.ui
 
 
 import java.io.File
+import java.lang.reflect.Constructor
 
 import BIDMach.models.Model
 
@@ -41,34 +42,26 @@ object Eval {
       | }
       | scala.reflect.classTag[%s].runtimeClass
     """.stripMargin
-
-  def evaluateCodeToFunction(code: String): (Model, Array[Mat]) => Mat = {
-
+  def getFunctor[T](template: String): T = {
     var classloader = new URLClassLoader(
       new File("lib").listFiles.filter(_.getName.endsWith(".jar")).map(_.toURL).toSeq,
       this.getClass.getClassLoader
     )
-    val completeCode = codeTemplate.format("Classname", code, "Classname")
     val cm = universe.runtimeMirror(classloader)
     val tb = cm.mkToolBox()
-    val clazz = tb.compile(tb.parse(completeCode))().asInstanceOf[Class[_]]
+    val clazz = tb.compile(tb.parse(template))().asInstanceOf[Class[_]]
     val ctor = clazz.getDeclaredConstructors()(0)
-    val instance = ctor.newInstance().asInstanceOf[(Model, Array[Mat]) => Mat]
+    val instance = ctor.newInstance().asInstanceOf[T]
     return instance
   }
 
-  def evaluatePar(parName: String, parValue: String): Learner.Options => Unit = {
+  def evaluateCodeToFunction(code: String): (Model, Array[Mat]) => Mat = {
+    val completeCode = codeTemplate.format("Classname", code, "Classname")
+    return getFunctor[(Model, Array[Mat]) => Mat](completeCode)
+  }
 
-    var classloader = new URLClassLoader(
-      new File("lib").listFiles.filter(_.getName.endsWith(".jar")).map(_.toURL).toSeq,
-      this.getClass.getClassLoader
-    )
+  def evaluatePar(parName: String, parValue: String): Learner.Options => Unit = {
     val completeCode = varTemplate.format("Classname", parName, parValue, "Classname")
-    val cm = universe.runtimeMirror(classloader)
-    val tb = cm.mkToolBox()
-    val clazz = tb.compile(tb.parse(completeCode))().asInstanceOf[Class[_]]
-    val ctor = clazz.getDeclaredConstructors()(0)
-    val instance = ctor.newInstance().asInstanceOf[Learner.Options => Unit]
-    return instance
+    return getFunctor[Learner.Options => Unit](completeCode)
   }
 }
