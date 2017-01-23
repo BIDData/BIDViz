@@ -59,8 +59,9 @@ class WebServerChannel(val learner: Learner) extends Learner.LearnerObserver {
   def modifyParam(args: JsValue): Unit = {
     val key = (args \ "name").as[String]
     val value = (args \ "value").as[String]
+    val function = Eval.evaluatePar(key, value)
+    function(learner.opts)
 
-    WebServerChannel.setValue(learner.opts, key, value.toDouble)
   }
 
   def handleRequest(requestJson: JsValue):String = {
@@ -98,7 +99,8 @@ class WebServerChannel(val learner: Learner) extends Learner.LearnerObserver {
       var key = acc.toString
       result += (key -> value2)
     }
-    return mkJson(name, Json.stringify(Json.toJson(result)))
+    return ""
+//    return mkJson(name, Json.stringify(Json.toJson(result)))
   }
 
   def pushOutStats() = {
