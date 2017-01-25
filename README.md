@@ -5,15 +5,81 @@
 This part assumes that you already have a script for BIDMach. We will use kmeans.ssc 
 in this repository as example.
 
-Steps:
+###<b>Steps:</b>
 #### Use an alternative version BIDMach that exposes a field in Learner.Options for datasink
-Please use the BIDMach from this repository 
+Please clone and build BIDMach from this repository by using following commands
 
-#### Clone this repository
+```
+  git clone https://github.com/qihqi/BIDMach
+  cd BIDMach
+  mvn package install 
+```
 
+If you get compile errors you might need to rebuild the latest version of BIDMat first, 
+with these commands 
+
+```
+  cd ..
+  git clone https://github.com/biddata/BIDMat
+  cd BIDMat
+  mvn package install 
+```
+
+Then rerun the previously failed commands
+
+#### Clone this repository and build it 
+```
+  cd ..
+  git clone https://github.com/qihqi/BIDMach_Viz
+  cd BIDMach
+  mvn package
+```
 #### Modify the script to add WebDataSink
 
-### Interactive Machine Learning toolkit based on BIDMach
+Here we use the kmeans.ssc script included in BIDMach_Viz as example.
+
+Before the script look like this:
+```
+import BIDMach.models.KMeans.MatOptions
+
+import BIDMat.{Mat,SBMat,CMat,DMat,FMat,IMat,HMat,GMat,GIMat,GSMat,SMat,SDMat}
+import BIDMat.MatFunctions._
+import BIDMat.SciFunctions._
+import BIDMach.datasources._
+import BIDMach.datasinks._
+import BIDMach.updaters._
+import BIDMach._
+import BIDMach.ui.NetSink
+
+val mat0 = rand(100, 100000)
+val opts = new MatOptions
+opts.dim = 256
+opts.batchSize = math.min(100000, mat0.ncols/30 + 1)
+opts.npasses = 1000
+val nn = new Learner(
+        new MatSource(Array(mat0:Mat), opts), 
+        new KMeans(opts), 
+        null,
+        new Batch(opts), 
+        null, 
+        opts)
+nn.train
+```
+New we want add WebServerChannel as learner listener to the learner before the line nn.train
+
+```
+import BIDMach.ui.WebServerChannel
+
+nn.opts.observer = new WebServerChannel(nn)
+```
+WebServer takes a Learner instance as constructor argument.
+Save the file. Now we can run it by first running a sbt console using 
+```sbt console```
+Then load the file using 
+```:load kmeans.ssc```
+
+
+#### Interactive Machine Learning toolkit based on BIDMach
 
 #### Install and build
 
