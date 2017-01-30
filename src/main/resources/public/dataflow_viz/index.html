@@ -43,13 +43,6 @@
 
         <!-- Brand and toggle get grouped for better mobile display -->
         <div class="navbar-header">
-            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse"
-                    data-target="#bs-example-navbar-collapse-1">
-                <span class="sr-only">Toggle navigation</span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-            </button>
             <a class="navbar-brand page-scroll" href="#page-top">BIDMach Visualization</a>
         </div>
 
@@ -162,6 +155,11 @@
                 $('#pause').html(window.paused ? "Resume" : "Pause");
             });
         });
+        var chart=viz.createGraph('test','LineChart',1);
+        var index=1;
+        setInterval(function() {
+            chart.addPoint(index++, 0, [Math.random()*100]);
+        },1000);
 
     });
 </script>
