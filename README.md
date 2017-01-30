@@ -2,8 +2,8 @@
 
 ### Add interactivity to existing BIDMach script
 
-This part assumes that you already have a script for BIDMach. We will use kmeans.ssc 
-in this repository as example.
+This We will use "kmeans.ssc" included in the repository as example file. You can 
+also use the same procedure for other BIDMach scripts that you might have.
 
 ###<b>Steps:</b>
 #### Use an alternative version BIDMach that exposes a field in Learner.Options for datasink
@@ -77,6 +77,18 @@ Save the file. Now we can run it by first running a sbt console using
 ```sbt console```
 Then load the file using 
 ```:load kmeans.ssc```
+
+The script will start running, eventually you will see this log
+
+```
+23:49:37.420 [run-main-0] INFO  play.core.server.NettyServer - Listening for HTTP on /0:0:0:0:0:0:0:0:9000
+```
+After this the webserver has started and you can access the visualization UI by
+directing your browser to [*http://localhost:9000/](http://localhost:9000/)
+
+![screen](bidmach_shot.png)
+
+You will see something like the above screen shot. 
 
 
 #### Interactive Machine Learning toolkit based on BIDMach
