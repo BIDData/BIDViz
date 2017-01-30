@@ -14,6 +14,8 @@
           rel='stylesheet' type='text/css'>
     <link rel="stylesheet" href="font-awesome/css/font-awesome.min.css" type="text/css">
 
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.1/css/bootstrap-select.min.css">
+
     <!-- Plugin CSS -->
     <link rel="stylesheet" href="css/magnific-popup.css" type="text/css">
 
@@ -27,9 +29,10 @@
         .navbar-default .navbar-nav > li > a:hover, .navbar-default .navbar-nav > li > a:focus {
             color: #8c8c8c;
         }
+
         #code {
             position: relative;
-            height:400px;
+            height: 400px;
             width: 400px;
             font-size: 18px;
         }
@@ -40,27 +43,28 @@
 <body id="page-top">
 <nav id="mainNav" class="navbar navbar-inverse navbar-fixed-top">
     <div class="container-fluid">
-
         <!-- Brand and toggle get grouped for better mobile display -->
         <div class="navbar-header">
             <a class="navbar-brand page-scroll" href="#page-top">BIDMach Visualization</a>
         </div>
 
-        <!-- Collect the nav links, forms, and other content for toggling -->
-        <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
-            <ul class="nav navbar-nav navbar-right">
-                <li>
-                    <a class="page-scroll" id="pause" href="#">Pause</a>
-                    <a class="page-scroll" id="setVar" href="#">Set var</a>
-                </li>
-            </ul>
-        </div>
+        <!--<div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">-->
+        <!--<a class="page-scroll" id="pause" href="#">Pause</a>-->
+        <!--<a class="page-scroll" id="setVar" href="#">Set var</a>-->
+        <!--</div>-->
     </div>
 </nav>
 
 <section style="padding-top:60px; padding-bottom:20px">
     <div class="col-md-2  col-md-offset-10">
-        <!--<a class="btn btn-primary btn-lg" id="creater">Create Graph</a>-->
+        <button class="btn btn-default btn-primary" style="margin-right: 10px" id="pause">Pause</button>
+        <button class="btn btn-default btn-primary" id="setValue">Set Value</button>
+    </div>
+</section>
+
+<!--
+<section style="padding-top:60px; padding-bottom:20px">
+    <div class="col-md-2  col-md-offset-10">
         <div class="dropdown">
             <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown"
                     aria-haspopup="true" aria-expanded="true">
@@ -74,32 +78,50 @@
             </ul>
         </div>
     </div>
-</section>
+</section> -->
 
 
-<div class="container">
+<div class="container" style="margin-top: 30px;">
     <div class="row">
-        <div class="col-sm-6">
+        <div class="col-md-6">
             <section id="graph" style="padding-top: 50px; overflow-y:scroll; height: 1000px">
             </section>
         </div>
-        <div class="col-sm-6">
-            <div class=""row>
-                <div class="row">
-                    <ul id="parameters" style="overflow-y: scroll; height:250px; padding-top:50px;"></ul>
-                </div>
-            </div>
+        <div class="col-md-5 col-md-offset-1">
             <div class="row">
-                <pre> def f(model: Model, minibatch: Array[Mat]): Mat = {</pre>
-                <div id="code"></div>
-                <pre>}</pre>
-                <input id="name" placeholder="name"/>
-                <input id="size" placeholder="size"/>
-                <select id="type">
-                    <option value="LineChart">LineChart</option>
-                    <option value="ColumnChart">ColumnChart</option>
-                </select>
-                <button id="submit">Submit</button>
+                <ul id="parameters" style="overflow-y: scroll; height:auto;"></ul>
+            </div>
+
+            <div class="row">
+                <div class="row" style="margin-bottom: 5px">
+                    <pre> def f(model: Model, minibatch: Array[Mat]): Mat = {</pre>
+                </div>
+                <div class="row" style="margin-bottom: 10px">
+                    <div id="code" ></div>
+                </div>
+                <div class="row" style="margin-bottom: 10px">
+                    <pre>}</pre>
+                </div>
+
+                <div class="row">
+                    <div class="input-group" style="margin-bottom: 5px;">
+                        <span class="input-group-addon" id="basic-addon1">name</span>
+                        <input id="name" type="text" class="form-control aria-describedby="basic-addon1">
+                    </div>
+                    <!--<div class="input-group" style="margin-bottom: 5px;">-->
+                        <!--<span class="input-group-addon" id="basic-addon2">size</span>-->
+                        <!--<input id="size" type="text" class="form-control aria-describedby="basic-addon2">-->
+                    <!--</div>-->
+                    <div>
+                        <select id="type" class="selectpicker row" style="margin-bottom: 5px;">
+                            <option value="LineChart">LineChart</option>
+                            <option value="ColumnChart">ColumnChart</option>
+                        </select>
+                        <button style="float: right"
+                                class="btn btn-primary btn-default" id="submit">submit</button>
+                    </div>
+                </div>
+
             </div>
         </div>
     </div>
@@ -111,18 +133,19 @@
 <script src="https://code.highcharts.com/highcharts.js"></script>
 <script src="https://code.highcharts.com/modules/exporting.js"></script>
 <script src="js/websocket_client.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.1/js/bootstrap-select.min.js"></script>
 <!-- script src="js/flow.js"></script -->
 <script src="js/bootstrap.js"></script>
 <script src="js/viz.js"></script>
 <script>
-    $(document).ready(function() {
+    $(document).ready(function () {
         window.viz = new VizManager('graph');
         window.paused = false;
         window.editor = ace.edit("code");
         window.editor.setTheme("ace/theme/monokai");
         window.editor.getSession().setMode("ace/mode/scala");
 
-        $('#submit').click(function(event) {
+        $('#submit').click(function (event) {
             event.preventDefault();
             var name = $('#name').val();
             var size = Number($('#size').val());
@@ -134,32 +157,32 @@
                 size: size,
                 type: type
             };
-            console.log(window.viz.addStat(obj, function() {
+            console.log(window.viz.addStat(obj, function () {
                 window.editor.setValue('');
                 $('#name').val('');
                 viz.createGraph(name, type, size);
             }));
         });
 
-        $('#pause').click(function(event) {
+        $('#pause').click(function (event) {
             event.preventDefault();
             window.paused = !window.paused;
-            window.viz.pauseTraining(window.paused, function() {
+            window.viz.pauseTraining(window.paused, function () {
                 $('#pause').html(window.paused ? "Resume" : "Pause");
             });
         });
 
-        $('#setVar').click(function(event) {
+        $('#setVar').click(function (event) {
             event.preventDefault();
-            window.viz.modifyParam('pstep', '0.02', function() {
+            window.viz.modifyParam('pstep', '0.02', function () {
                 $('#pause').html(window.paused ? "Resume" : "Pause");
             });
         });
-        var chart=viz.createGraph('test','LineChart',1);
-        var index=1;
-        setInterval(function() {
-            chart.addPoint(index++, 0, [Math.random()*100]);
-        },1000);
+//        chart = viz.createGraph('test', 'LineChart', [1, 1]);
+//        var index = 1;
+//        setInterval(function () {
+//            chart.addPoint(index++, 0, [Math.random() * 100]);
+//        }, 1000);
 
     });
 </script>

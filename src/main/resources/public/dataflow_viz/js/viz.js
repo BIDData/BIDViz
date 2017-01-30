@@ -127,8 +127,8 @@ function postData(data, callback) {
 }
 
 function createGraphSuit(id) {
-    var graph_suit = $("<div></div>").addClass("graph_suit col-md-6").css("margin-bottom", "60px");
-    var graph = $("<div></div>").attr("id", id).css("height", "450px").css("margin", "0 auto");
+    var graph_suit = $("<div></div>").addClass("graph_suit").css("margin-bottom", "60px");
+    var graph = $("<div></div>").attr("id", id).addClass('row').css("height", "450px").css("margin", "0 auto");
     graph_suit.append(graph);
     return graph_suit;
 }
@@ -142,8 +142,9 @@ function LineChart(id, name, size) {
     if (!this.size) {
         this.size = 1;
     }
-    series = [];
+    var series = [];
     for (var i = 0; i < size; i++) {
+        console.log("i am here")
         series.push({
             data: []
         });
@@ -177,12 +178,13 @@ function LineChart(id, name, size) {
                 margin: 80
             },
             min: 0,
-            max: 100,
+            max: 1,
             endOnTick: false,
             startOnTick: false,
         },
         series: series
     });
+    console.log("here", series.length);
 }
 
 // point is (ipass, point)
@@ -190,6 +192,7 @@ LineChart.prototype.addPoint = function(ipass, sizes, values) {
     var series = this.chart.series;
     console.log("values", values);
     for (var i = 0; i < this.size; i++) {
+        console.log(series);
         var shift = series[i].data.length > 40;
         var point = [ipass, +(values[i])];
         series[i].addPoint(point, true, shift);
