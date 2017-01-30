@@ -19,20 +19,21 @@ import play.api.routing.sird
 import scala.reflect.runtime.universe._
 import scala.collection.mutable.{Map => MMap}
 import scala.collection.mutable.ListBuffer
-
+import scala.io.Source
+import java.io._
 
 /**
   * Created by han on 11/30/16.
   */
 class WebServerChannel(val learner: Learner) extends Learner.LearnerObserver {
-  var stats: Map[String, StatFunction] = Map("variance" -> new StatFunction(
-    "variance", "", 1, "LineChart", WebServerChannel.arraymean _));
+  var stats = MMap[String, StatFunction]()
   val interestingStats = List(
     ("Learner.Opts", learner.opts)
   )
   var server = LocalWebServer.mkNewServer(this)
   var prevPass = -1
   // server.startServer()
+  loadAllMetricsFiles()
 
   def mkJson(msgType: String, content: String): String =
     s"""
@@ -49,6 +50,7 @@ class WebServerChannel(val learner: Learner) extends Learner.LearnerObserver {
     val theType = (requestJson \ "type").as[String]
     val function = Eval.evaluateCodeToFunction(code)
     println(code)
+    saveMetricsFile(name+"$"+size+"$"+theType, code)
     stats = stats + (name -> new StatFunction(name, code, size, theType, function))
   }
 
@@ -112,6 +114,40 @@ class WebServerChannel(val learner: Learner) extends Learner.LearnerObserver {
     }
   }
 
+  def saveMetricsFile(filename: String, codefile: String) {
+    val writer = new PrintWriter(new File(WebServerChannel.metricLocation + filename))
+    writer.write(codefile)
+    writer.close()
+  }
+
+  def loadMetricsFile(filename: String): String = {
+    val source = scala.io.Source.fromFile(filename)
+    val lines = try source.mkString finally source.close()
+    return lines
+  }
+
+  def getListOfFiles(dir: String):List[String] = {
+    val d = new File(dir)
+    if (d.exists && d.isDirectory) {
+      d.listFiles.map(_.getName).toList
+    } else {
+      List[String]()
+    }
+  }
+
+  def loadAllMetricsFiles() = {
+    val listOfFiles = getListOfFiles(WebServerChannel.metricLocation)
+    for (filename <- listOfFiles) {
+      val metricsCode = loadMetricsFile(WebServerChannel.metricLocation + filename)
+      val metricsInfo = filename.split("\\$")
+      val metricsName = metricsInfo(0)
+      val metricsSize = metricsInfo(1).toInt
+      val metricsType = metricsInfo(2)
+      val metricsFunction = Eval.evaluateCodeToFunction(metricsCode)
+      stats = stats + (metricsName -> new StatFunction(metricsName, metricsCode,
+        metricsSize, metricsType, metricsFunction))
+    }
+  }
 
   override def notify(ipass: Int, model: Model, minibatch: Array[Mat]): Unit = {
     if (server.func != null) {
@@ -131,6 +167,8 @@ class WebServerChannel(val learner: Learner) extends Learner.LearnerObserver {
 }
 
 object WebServerChannel {
+  val metricLocation = "src/main/resources/metrics/"
+
   def matToArr(m: Mat): (Seq[Int], Seq[String]) = {
     val row = m.nrows
     val col = m.ncols

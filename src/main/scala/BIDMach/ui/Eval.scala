@@ -20,6 +20,7 @@ object Eval {
     """
       |import BIDMach.models.Model
       |import BIDMat.Mat
+      |import BIDMat.TMat
       |import BIDMat.MatFunctions._
       |import BIDMat.SciFunctions._
       |import BIDMat.Solvers._
