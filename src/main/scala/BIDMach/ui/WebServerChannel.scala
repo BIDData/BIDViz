@@ -46,7 +46,6 @@ class WebServerChannel(val learner: Learner) extends Learner.LearnerObserver {
   def addNewFunction(requestJson: JsValue) = {
     val name = (requestJson \ "name").as[String]
     val code = (requestJson \ "code").as[String]
-    val size = (requestJson \ "size").as[Int]
     val theType = (requestJson \ "type").as[String]
     val function = Eval.evaluateCodeToFunction(code)
     println(code)
