@@ -9,6 +9,9 @@ function postData(data, callback) {
             if (callback) {
                 callback(event);
             }
+        },
+        failure: function(event) {
+            console.log(event);
         }
     });
 }
@@ -26,6 +29,9 @@ function LineChart(id, name, size) {
     this.name = name;
     this.shape = [1,1];
     this.size = size;
+    if (!this.size) {
+        this.size = 1;
+    }
     series = [];
     for (var i = 0; i < size; i++) {
         series.push({
@@ -36,6 +42,7 @@ function LineChart(id, name, size) {
         chart: {
             renderTo: id,
             defaultSeriesType: 'spline',
+            alighTicks: false,
             events: {
             }
         },
@@ -78,89 +85,37 @@ LineChart.prototype.addPoint = function(ipass, sizes, values) {
 function Histogram(id, name) {
     this.id = id;
     this.name = name;
-    this.shape = [1,1];
-    this.pointSet = [];
-    this.step = 10;
     this.chart = new Highcharts.Chart({
         chart: {
-            type: "column",
             renderTo: id,
-            defaultSeriesType: 'spline',
-            events: {
-            }
+            type: 'column',
+            alighTicks: false,
         },
         title: {
-            text: name,
-            style: {
-                color: '#000',
-                fontWeight: 'bold',
-                fontSize: "20px",
-            }
+            text: name
         },
         xAxis: {
-            type: 'linear',
-            tickPixelInterval: 40,
-            maxZoom: 40
-        },
-        yAxis: {
-            minPadding: 0.2,
-            maxPadding: 0.2,
-            title: {
-                text: 'Value',
-                margin: 80
-            }
+            gridLineWidth: 1
         },
         series: [{
-            data: []
+            name: name,
+            type: 'column',
+            data: [],
+            pointPadding: 0,
+            groupPadding: 0,
+            pointPlacement: 'between'
         }]
     });
 }
 
-    function arrToHistogram(data, binsize) {
-        var histo = {},
-            x,
-            i,
-            arr = [];
-
-        var max = Math.max(data);
-        var min = Math.min(data);
-        var step = (max - min) / binsize;
-        if (step < 0.01) {
-            return;
-        }
-
-        // Group down
-        for (i = 0; i < data.length; i++) {
-            x = Math.floor(data[i] / step) * step;
-            if (!histo[x]) {
-                histo[x] = 0;
-            }
-            histo[x]++;
-        }
-
-        // Make the histo group into an array
-        for (x in histo) {
-            if (histo.hasOwnProperty((x))) {
-                arr.push([parseFloat(x), histo[x]]);
-            }
-        }
-
-        // Finally, sort the array
-        arr.sort(function (a, b) {
-            return a[0] - b[0];
-        });
-
-        return arr;
+Histogram.prototype.addPoint = function(ipass, sizes, values) {
+    var datas = [];
+    for (var i = 0; i < sizes[0]; i += sizes[1]) {
+        var p = [Number(values[i]), Number(values[i + 1])];
+        datas.push(p);
     }
-
-Histogram.prototype.addPoint = function(point) {
-    var series = this.chart.series[0];
-    var shift = series.data.length > 40;
-    this.pointSet.push(point[1]);
-    this.binsize = 10;
-    var newBins = arrToHistogram(this.pointSet, this.binsize);
-    // console.log('newbin', newBins);
-    series.setData(newBins);
+    console.log("calling setData", datas);
+    this.chart.series[0].setData(datas, true, true, true);
 }
 
 function VizManager(root) {
@@ -197,21 +152,21 @@ VizManager.prototype.connect = function() {
 //      )
 
 VizManager.prototype.onmessage = function(event) {
+    console.log("raw data", event.data);
+    if (event.data.length == 0) {
+        console.log("empty message");
+        return;
+    }
     var msg = $.parseJSON(event.data);
     if (msg.msgType === 'data_point') {
         var object = msg.content;
         var name = object.name;
         if (!(name in this.allCharts)) {
-            // create new
-            var graphSuit = createGraphSuit(name);
-            $('#' + this.root).append(graphSuit);
-            // var chart = new LineChart(name, name);
-             var chart = new LineChart(name, name, 1);
+            var chart = this.createGraph(name, object.type, object.shape);
             this.allCharts[name] = chart;
         }
-        var series = this.allCharts[name].addPoint(object.ipass, object.sizes, object.data);
+        var series = this.allCharts[name].addPoint(object.ipass, object.shape, object.data);
     } else {
-        console.log(msg);
         $('#parameters').html("");
         for (var key in msg.content) {
             var item = $('<li>')
@@ -221,7 +176,7 @@ VizManager.prototype.onmessage = function(event) {
     }
 }
 
-VizManager.prototype.createGraph = function(name, type, size) {
+VizManager.prototype.createGraph = function(name, type, shape) {
     var chart;
     if ((name in this.allCharts)) {
         return;
@@ -229,9 +184,10 @@ VizManager.prototype.createGraph = function(name, type, size) {
     var graphSuit = createGraphSuit(name);
     $('#' + this.root).append(graphSuit);
     if (type === 'LineChart') {
+        var size = shape[0] * shape[1];
         chart = new LineChart(name, name, size);
-    } else if (type === 'Histogram') {
-        chart = new Histogram(name, name, size);
+    } else if (type === 'ColumnChart') {
+        chart = new Histogram(name, name);
     }
     this.allCharts[name] = chart;
     return chart;

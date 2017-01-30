@@ -100,7 +100,7 @@ class WebServerChannel(val learner: Learner) extends Learner.LearnerObserver {
       result += (key -> value2)
     }
     return ""
-//    return mkJson(name, Json.stringify(Json.toJson(result)))
+    return mkJson(name, Json.stringify(Json.toJson(result)))
   }
 
   def pushOutStats() = {
@@ -119,7 +119,7 @@ class WebServerChannel(val learner: Learner) extends Learner.LearnerObserver {
         val result = f.funcPointer(model, minibatch)
         if (ipass > prevPass) {
           val (sizes, data) = WebServerChannel.matToArr(result)
-          val content = DataPointContent(name, ipass, sizes, data)
+          val content = DataPointContent(name, ipass, sizes, data, f.theType)
           val message = Message("data_point", content)
           server.func(Json.toJson(message).toString)
           pushOutStats()

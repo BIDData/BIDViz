@@ -31,7 +31,7 @@ Then rerun the previously failed commands
 ```
   cd ..
   git clone https://github.com/qihqi/BIDMach_Viz
-  cd BIDMach
+  cd BIDMach_Viz
   mvn package
 ```
 #### Modify the script to add WebDataSink

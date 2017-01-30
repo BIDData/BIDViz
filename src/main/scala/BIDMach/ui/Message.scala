@@ -11,9 +11,8 @@ import play.api.libs.json.{Json, Writes}
 trait MessageContent {}
 case class Message(msgType: String, content: MessageContent){}
 
-
 case class DataPointContent(name: String, ipass: Int,
-                            shape: Seq[Int], data: Seq[String]) extends MessageContent {}
+                            shape: Seq[Int], data: Seq[String], theType: String) extends MessageContent {}
 
 case class ParameterContent(content: Map[String, String]) extends MessageContent {}
 
@@ -23,12 +22,13 @@ case class StatFunction(name: String, code: String, size: Int,
 object Message {
   implicit val contentWrite = new Writes[MessageContent] {
     def writes(content: MessageContent) = content match {
-      case DataPointContent(name, ipass, shape, data) =>
+      case DataPointContent(name, ipass, shape, data, theType) =>
         Json.obj(
           "name" -> name,
-        "ipass" -> ipass,
-        "shape" -> shape,
-        "data" -> data
+          "ipass" -> ipass,
+          "shape" -> shape,
+          "data" -> data,
+          "type" -> theType
       )
       case ParameterContent(c) => Json.toJson(c)
     }

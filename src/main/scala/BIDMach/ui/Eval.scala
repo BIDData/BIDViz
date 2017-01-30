@@ -21,6 +21,12 @@ object Eval {
       |import BIDMach.models.Model
       |import BIDMat.Mat
       |import BIDMat.MatFunctions._
+      |import BIDMat.SciFunctions._
+      |import BIDMat.Solvers._
+      |import BIDMat.Plotting._
+      |import BIDMach.Learner
+      |import BIDMach.networks.Net
+      |import BIDMach.ui.CodeHelpers._
       | class %s extends Function2[Model, Array[Mat], Mat] {
       |   override def apply(model: Model, minibatch: Array[Mat]): Mat = {
       |     %s
