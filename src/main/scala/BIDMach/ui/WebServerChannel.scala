@@ -21,6 +21,8 @@ import scala.collection.mutable.{Map => MMap}
 import scala.collection.mutable.ListBuffer
 import scala.io.Source
 import java.io._
+import scala.tools.reflect.ToolBoxError
+
 
 /**
   * Created by han on 11/30/16.
@@ -43,15 +45,19 @@ class WebServerChannel(val learner: Learner) extends Learner.LearnerObserver {
        |}
      """.stripMargin
 
-  def addNewFunction(requestJson: JsValue) = {
+  def addNewFunction(requestJson: JsValue): (Int, String) = {
     val name = (requestJson \ "name").as[String]
     val code = (requestJson \ "code").as[String]
     val size = 1
     val theType = (requestJson \ "type").as[String]
-    val function = Eval.evaluateCodeToFunction(code)
-    println(code)
-    saveMetricsFile(name+"$"+size+"$"+theType, code)
-    stats = stats + (name -> new StatFunction(name, code, size, theType, function))
+    try {
+      val function = Eval.evaluateCodeToFunction(code)
+      println(code)
+      stats = stats + (name -> new StatFunction(name, code, size, theType, function))
+      return (0, "Code pushed is valid.")
+    } catch {
+      case e: ToolBoxError => return (1, e.getMessage())
+    }
   }
 
   def pauseTraining(args: JsValue) = {
@@ -150,6 +156,7 @@ class WebServerChannel(val learner: Learner) extends Learner.LearnerObserver {
   }
 
   override def notify(ipass: Int, model: Model, minibatch: Array[Mat]): Unit = {
+    var messages = new ListBuffer[Message]
     if (server.func != null) {
       for ((name, f) <- stats) {
         val result = f.funcPointer(model, minibatch)
@@ -157,10 +164,11 @@ class WebServerChannel(val learner: Learner) extends Learner.LearnerObserver {
           val (sizes, data) = WebServerChannel.matToArr(result)
           val content = DataPointContent(name, ipass, sizes, data, f.theType)
           val message = Message("data_point", content)
-          server.func(Json.toJson(message).toString)
-          pushOutStats()
+          messages += message
         }
       }
+      server.func(Json.toJson(messages).toString)
+      pushOutStats()
       prevPass = ipass
     }
   }

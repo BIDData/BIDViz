@@ -1,13 +1,11 @@
 package BIDMach.ui
 
 
-import java.io.File
-import java.lang.reflect.Constructor
-
 import BIDMach.models.Model
+import java.io.File
 
 import scala.reflect.runtime.universe
-import scala.tools.reflect.ToolBox
+import scala.tools.reflect.{ToolBox, ToolBoxError}
 import scala.reflect.internal.util.ScalaClassLoader.URLClassLoader
 import BIDMat.Mat
 import BIDMach.Learner
@@ -71,4 +69,5 @@ object Eval {
     val completeCode = varTemplate.format("Classname", parName, parValue, "Classname")
     return getFunctor[Learner.Options => Unit](completeCode)
   }
+
 }
