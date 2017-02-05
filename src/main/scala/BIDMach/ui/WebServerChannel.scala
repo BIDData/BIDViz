@@ -107,7 +107,8 @@ class WebServerChannel(val learner: Learner) extends Learner.LearnerObserver {
       var key = acc.toString
       result += (key -> value2)
     }
-    return mkJson(name, Json.stringify(Json.toJson(result)))
+    return ""
+//    return mkJson(name, Json.stringify(Json.toJson(result)))
   }
 
   def pushOutStats() = {
