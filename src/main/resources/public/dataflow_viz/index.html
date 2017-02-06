@@ -64,6 +64,9 @@
         <button class="btn btn-default btn-primary" type="button"
                 data-toggle="modal" data-target="#my_modal" id="addCode">Add Code
         </button>
+        <button class="btn btn-default btn-primary" type="button"
+                data-toggle="modal" data-target="#my_modal2" id="params">Show Params
+        </button>
     </div>
 </section>
 
@@ -76,6 +79,22 @@
 </div>
 
 <!--modal-->
+<div class="modal fade " id="my_modal2" tabindex="-1" role="dialog"
+     aria-labelledby="my_modal_label2" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" style="text-align: center;"><strong>Add Code Util</strong></h2>
+            </div>
+            <div class="modal-body ">
+                <ul id="parameters"> </ul>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="modal fade " id="my_modal" tabindex="-1" role="dialog"
      aria-labelledby="my_modal_label" aria-hidden="true">
     <div class="modal-dialog modal-lg" role="document">
@@ -152,8 +171,8 @@
                 window.editor.setValue('');
                 $('#name').val('');
                 viz.createGraph(name, type, size);
-
-
+            }, function(failed) {
+                alert(failed);
             }));
             $('#my_modal').modal('hide');
         });
@@ -200,9 +219,6 @@
                 }
             }
         });
-
-
-
     });
 </script>
 

@@ -90,7 +90,7 @@ class WebServerChannel(val learner: Learner) extends Learner.LearnerObserver {
     (status, msg)
   }
 
-  def computeStatsToJson(name:String, x: AnyRef): String = {
+  def computeStatsToMessage(name:String, x: AnyRef): Message = {
     val rm = scala.reflect.runtime.currentMirror
     val accessors = rm.classSymbol(x.getClass).toType.members.collect {
       case m: MethodSymbol if m.isGetter && m.isPublic => m
@@ -111,16 +111,10 @@ class WebServerChannel(val learner: Learner) extends Learner.LearnerObserver {
     }
     var map = Map(result.toList: _*)
     val message = ParameterContent(map)
-    return Json.toJson(message).toString
+    return Message("parameters", message)
   }
 
   def pushOutStats() = {
-    for ((key, obj) <- interestingStats) {
-      if (obj != null) {
-        val m2 = computeStatsToJson(key, obj)
-        server.func(m2)
-      }
-    }
   }
 
   def saveMetricsFile(filename: String, codefile: String) {
@@ -171,8 +165,13 @@ class WebServerChannel(val learner: Learner) extends Learner.LearnerObserver {
           messages += message
         }
       }
+      for ((key, obj) <- interestingStats) {
+        if (obj != null) {
+          val m2 = computeStatsToMessage(key, obj)
+          messages += m2
+        }
+      }
       server.func(Json.toJson(messages).toString)
-      pushOutStats()
       prevPass = ipass
     }
   }
