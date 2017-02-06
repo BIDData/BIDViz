@@ -127,8 +127,8 @@ function postData(data, callback) {
 }
 
 function createGraphSuit(id) {
-    var graph_suit = $("<div></div>").addClass("graph_suit").css("margin-bottom", "60px");
-    var graph = $("<div></div>").attr("id", id).addClass('row').css("height", "450px").css("margin", "0 auto");
+    var graph_suit = $("<div></div>").addClass("graph_suit").addClass("col-md-5").css("width","50%").css("height", "450px").css("margin-bottom", "60px");
+    var graph = $("<div></div>").attr("id", id).css("margin", "0 auto");
     graph_suit.append(graph);
     return graph_suit;
 }
