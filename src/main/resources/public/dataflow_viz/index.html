@@ -51,14 +51,14 @@
 </nav>
 
 <section class="row" style="padding-top:60px; padding-bottom:20px">
-    <div class="col-md-2">
+    <div class="col-md-offset-1 col-md-4">
         <select id="graph_selector" multiple="multiple">
-            <option value="one">One</option>
-            <option value="two">Two</option>
-            <option value="three">Three</option>
+            <!--<option value="one" selected="selected">One</option>-->
+            <!--<option value="two">Two</option>-->
+            <!--<option value="three">Three</option>-->
         </select>
     </div>
-    <div class="col-md-offset-6 col-md-4">
+    <div class="col-md-offset-3 col-md-4">
         <button class="btn btn-default btn-primary" style="margin-right: 10px" id="pause">Pause</button>
         <button class="btn btn-default btn-primary" style="margin-right: 10px" id="setValue">Set Value</button>
         <button class="btn btn-default btn-primary" type="button"
@@ -137,7 +137,6 @@
         window.editor.setTheme("ace/theme/monokai");
         window.editor.getSession().setMode("ace/mode/scala");
 
-        $('#graph_selector').multiselect();
 
         $('#submit').click(function (event) {
             event.preventDefault();
@@ -149,15 +148,13 @@
                 code: code,
                 type: type
             };
-            console.log(
-                window.viz.addStat(obj, function () {
-                    window.editor.setValue('');
-                    $('#name').val('');
-                    viz.createGraph(name, type, size);
-                }, function(msg) {
-                    alert(msg);
-                })
-            );
+            console.log(window.viz.addStat(obj, function () {
+                window.editor.setValue('');
+                $('#name').val('');
+                viz.createGraph(name, type, size);
+
+
+            }));
             $('#my_modal').modal('hide');
         });
 
@@ -176,18 +173,35 @@
             });
         });
 
-
-        chart = viz.createGraph('test', 'LineChart', [1, 1]);
+//        chart = viz.createGraph('Test1', 'LineChart', [1, 1]);
 //        var index = 1;
 //        setInterval(function () {
 //            chart.addPoint(index++, 0, [Math.random()]);
 //        }, 1000);
 
-        chart2 = viz.createGraph('Test2', 'LineChart', [1, 1]);
+
+
+//        chart2 = viz.createGraph('Test2', 'LineChart', [1, 1]);
 //        var index = 1;
 //        setInterval(function () {
 //            chart.addPoint(index++, 0, [Math.random()]);
 //        }, 1000);
+
+        $('#graph_selector').multiselect({
+            enableFiltering:true,
+            onChange: function (option, checked, select) {
+//                alert('Changed option ' + $(option).val() + '. '+checked);
+                var id=$(option).val();
+                if(!checked){
+                    $('#'+id).hide();
+                }
+                else{
+                    $('#'+id).show();
+                }
+            }
+        });
+
+
 
     });
 </script>

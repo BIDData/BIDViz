@@ -134,6 +134,10 @@ function createGraphSuit(id) {
     var graph_suit = $("<div></div>").addClass("graph_suit").addClass("col-md-5").css("width","50%").css("height", "450px").css("margin-bottom", "60px");
     var graph = $("<div></div>").attr("id", id).css("margin", "0 auto");
     graph_suit.append(graph);
+    var select_option=$("<option></option>").val(id).text(id).attr("selected","selected");
+    var graph_selector=$('#graph_selector');
+    graph_selector.append(select_option);
+    // $('#graph_selector').multiselect("rebuild");
     return graph_suit;
 }
 
