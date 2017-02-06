@@ -166,10 +166,10 @@
             });
         });
 
-        $('#setVar').click(function (event) {
+        $('#setValue').click(function (event) {
             event.preventDefault();
-            window.viz.modifyParam('pstep', '0.02', function () {
-                $('#pause').html(window.paused ? "Resume" : "Pause");
+            window.viz.modifyParam('pstep', '0.02', function (event) {
+                console.log(event);
             });
         });
 

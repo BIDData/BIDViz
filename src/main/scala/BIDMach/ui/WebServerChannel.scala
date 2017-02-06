@@ -67,9 +67,7 @@ class WebServerChannel(val learner: Learner) extends Learner.LearnerObserver {
   def modifyParam(args: JsValue): Unit = {
     val key = (args \ "name").as[String]
     val value = (args \ "value").as[String]
-    val function = Eval.evaluatePar(key, value)
-    function(learner.opts)
-
+    WebServerChannel.setValue(learner.opts, key, value)
   }
 
   def handleRequest(requestJson: JsValue): (Int, String) = {
@@ -194,8 +192,16 @@ object WebServerChannel {
     (Seq(row, col), result)
   }
 
-  def setValue(obj: AnyRef, name: String, value: Any): Unit = {
-    obj.getClass.getMethods.find(_.getName == name + "_$eq").get.invoke(obj, value.asInstanceOf[AnyRef])
+  def setValue(obj: AnyRef, name: String, value: String): Unit = {
+    var targetClass = obj.getClass.getMethods.find(_.getName == name).get.getReturnType
+    var targetVal: AnyRef = null
+    targetClass match {
+      case _: Class[Float] => targetVal = value.toFloat.asInstanceOf[AnyRef]
+      case _: Class[Double] => targetVal = value.toDouble.asInstanceOf[AnyRef]
+      case _: Class[Int]  => targetVal = value.toInt.asInstanceOf[AnyRef]
+      case _: Class[Boolean]  => targetVal = value.toBoolean.asInstanceOf[AnyRef]
+    }
+    obj.getClass.getMethods.find(_.getName == name + "_$eq").get.invoke(obj, targetVal)
   }
   def allOnes(mats: Array[Mat]): Mat = {
     ones(1,1)
