@@ -1,0 +1,8 @@
+    var m:Mat = null
+     for (i <- model.mats) {
+        i match {
+         case i:TMat => m = variance(i.tiles(0)(?))
+         case i:Mat => m = variance(i(?))
+       }
+     }
+     m
