@@ -104,14 +104,21 @@ object  LocalWebServer {
           Action { request =>
             println(request.body)
             var returnVal = ""
+            var status = 0
             request.body.asJson match {
               case None =>
                 returnVal = "bad content"
               case Some(content) =>
-                returnVal = webServerChannel.handleRequest(content)
+                var y = webServerChannel.handleRequest(content)
+                returnVal = y._2
+                status = y._1
                 println(content)
             }
-            Results.Ok(returnVal)
+            if (status == 0) {
+              Results.Ok(returnVal)
+            } else {
+              Results.NotAcceptable(returnVal)
+            }
           }
 
         case GET(p"/assets/$file*")=>

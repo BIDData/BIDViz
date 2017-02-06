@@ -108,7 +108,7 @@
     });
 }(Highcharts));
 
-function postData(data, callback) {
+function postData(data, callback, failure) {
     $.ajax({
         method: 'POST',
         url: '/request',
@@ -120,8 +120,12 @@ function postData(data, callback) {
                 callback(event);
             }
         },
-        failure: function(event) {
-            console.log(event);
+        error: function(event, status, error) {
+            console.log(event, status, error);
+            console.log(failure);
+            if (failure) {
+                failure(event.responseText);
+            }
         }
     });
 }
@@ -274,21 +278,24 @@ VizManager.prototype.onmessage = function(event) {
         console.log("empty message");
         return;
     }
-    var msg = $.parseJSON(event.data);
-    if (msg.msgType === 'data_point') {
-        var object = msg.content;
-        var name = object.name;
-        if (!(name in this.allCharts)) {
-            var chart = this.createGraph(name, object.type, object.shape);
-            this.allCharts[name] = chart;
-        }
-        var series = this.allCharts[name].addPoint(object.ipass, object.shape, object.data);
-    } else {
-        $('#parameters').html("");
-        for (var key in msg.content) {
-            var item = $('<li>')
-            item.html(key + ': ' + msg.content[key]);
-            $('#parameters').append(item);
+    var msgs = $.parseJSON(event.data);
+    for (var x in msgs) {
+        var msg = msgs[x];
+        if (msg.msgType === 'data_point') {
+            var object = msg.content;
+            var name = object.name;
+            if (!(name in this.allCharts)) {
+                var chart = this.createGraph(name, object.type, object.shape);
+                this.allCharts[name] = chart;
+            }
+            var series = this.allCharts[name].addPoint(object.ipass, object.shape, object.data);
+        } else {
+            $('#parameters').html("");
+            for (var key in msg.content) {
+                var item = $('<li>')
+                item.html(key + ': ' + msg.content[key]);
+                $('#parameters').append(item);
+            }
         }
     }
 }
@@ -316,12 +323,12 @@ VizManager.prototype.onopen = function(event) {
 }
 VizManager.prototype.onclose = function(event) {}
 VizManager.prototype.onerror = function(event) {}
-VizManager.prototype.addStat = function(obj, callback) {
+VizManager.prototype.addStat = function(obj, callback, failure) {
     var data = {
         methodName: "addFunction",
         content: obj
     };
-    postData(data, callback);
+    postData(data, callback, failure);
 }
 
 VizManager.prototype.pauseTraining = function(value, callback) {

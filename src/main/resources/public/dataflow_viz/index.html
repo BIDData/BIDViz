@@ -149,11 +149,15 @@
                 code: code,
                 type: type
             };
-            console.log(window.viz.addStat(obj, function () {
-                window.editor.setValue('');
-                $('#name').val('');
-                viz.createGraph(name, type, size);
-            }));
+            console.log(
+                window.viz.addStat(obj, function () {
+                    window.editor.setValue('');
+                    $('#name').val('');
+                    viz.createGraph(name, type, size);
+                }, function(msg) {
+                    alert(msg);
+                })
+            );
             $('#my_modal').modal('hide');
         });
 

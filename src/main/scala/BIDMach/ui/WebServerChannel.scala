@@ -72,12 +72,16 @@ class WebServerChannel(val learner: Learner) extends Learner.LearnerObserver {
 
   }
 
-  def handleRequest(requestJson: JsValue):String = {
+  def handleRequest(requestJson: JsValue): (Int, String) = {
     val methodName = (requestJson \ "methodName").as[String]
     val values = requestJson \ "content"
+    var status: Int = 0
+    var msg: String = "good"
     methodName match {
       case "addFunction" =>
-        addNewFunction(values.as[JsValue])
+        var result = addNewFunction(values.as[JsValue])
+        status = result._1
+        msg = result._2
       case "pauseTraining" =>
         pauseTraining(values.as[JsValue])
       case "modifyParam" =>
@@ -85,7 +89,7 @@ class WebServerChannel(val learner: Learner) extends Learner.LearnerObserver {
       case _ =>
         error("method not found")
     }
-    ""
+    (status, msg)
   }
 
   def computeStatsToJson(name:String, x: AnyRef): String = {
@@ -107,8 +111,9 @@ class WebServerChannel(val learner: Learner) extends Learner.LearnerObserver {
       var key = acc.toString
       result += (key -> value2)
     }
-    return ""
-//    return mkJson(name, Json.stringify(Json.toJson(result)))
+    var map = Map(result.toList: _*)
+    val message = ParameterContent(map)
+    return Json.toJson(message).toString
   }
 
   def pushOutStats() = {
@@ -159,6 +164,7 @@ class WebServerChannel(val learner: Learner) extends Learner.LearnerObserver {
     var messages = new ListBuffer[Message]
     if (server.func != null) {
       for ((name, f) <- stats) {
+        println(s"evaluating, $name")
         val result = f.funcPointer(model, minibatch)
         if (ipass > prevPass) {
           val (sizes, data) = WebServerChannel.matToArr(result)
@@ -178,6 +184,9 @@ object WebServerChannel {
   val metricLocation = "src/main/resources/metrics/"
 
   def matToArr(m: Mat): (Seq[Int], Seq[String]) = {
+    if (m == null) {
+      return (Seq(0, 0), Seq())
+    }
     val row = m.nrows
     val col = m.ncols
     val result = (for (i <- 0 until row;
