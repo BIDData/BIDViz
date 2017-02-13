@@ -251,6 +251,7 @@ function VizManager(root) {
     this.websocket = null;
     this.allCharts = {};
     this.root = root;
+    this.paraMap={};
     this.connect();
 }
 
@@ -294,12 +295,28 @@ VizManager.prototype.onmessage = function(event) {
             }
             var series = this.allCharts[name].addPoint(object.ipass, object.shape, object.data);
         } else {
-            $('#parameters').html("");
             for (var key in msg.content) {
-                var item = $('<li>')
-                item.html(key + ': ' + msg.content[key]);
-                $('#parameters').append(item);
+                var item = $('<tr>');
+                var cell1=$('<td>');
+                cell1.html(key);
+                var cell2=$('<td>');
+                cell2.html(msg.content[key]);
+                item.append(cell1);
+                item.append(cell2);
+                $('#parameters_body').append(item);
             }
+            $('#parameters_table').editableTableWidget();
+            
+            var self=this;
+            
+            $('table td').on('change', function(evt, newValue) {
+                var key=$(evt.currentTarget).attr('name');
+                var name=newValue;
+                self.paraMap[key]=name;
+                return true;
+            });
+            
+            
         }
     }
 }
@@ -343,14 +360,15 @@ VizManager.prototype.pauseTraining = function(value, callback) {
     postData(data, callback);
 }
 
-VizManager.prototype.modifyParam = function(name, value) {
+VizManager.prototype.modifyParam = function() {
     var data = {
         methodName: "modifyParam",
-        content: {
-            name: name,
-            value: value
-        }
+        content: []
     };
+    for(var key in this.paraMap){
+        var value=this.paraMap[key];
+        data.content.push({'key':key,'value':value});
+    }
     postData(data);
 }
 

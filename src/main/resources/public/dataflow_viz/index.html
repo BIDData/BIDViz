@@ -58,10 +58,10 @@
             <!--<option value="three">Three</option>-->
         </select>
     </div>
-    <div class="col-md-offset-3 col-md-4">
+    <div class="col-md-offset-2 col-md-5">
         <button class="btn btn-default btn-primary" style="margin-right: 10px" id="pause">Pause</button>
         <button class="btn btn-default btn-primary" style="margin-right: 10px" id="setValue">Set Value</button>
-        <button class="btn btn-default btn-primary" type="button"
+        <button class="btn btn-default btn-primary" type="button"  style="margin-right: 10px"
                 data-toggle="modal" data-target="#my_modal" id="addCode">Add Code
         </button>
         <button class="btn btn-default btn-primary" type="button"
@@ -84,12 +84,23 @@
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h2 class="modal-title" style="text-align: center;"><strong>Add Code Util</strong></h2>
+                <h4 class="modal-title" style="text-align: center;"><strong>Parameters</strong></h4>
             </div>
             <div class="modal-body ">
-                <ul id="parameters"> </ul>
+                <table class="table table-striped" id="parameters_table">
+                    <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Value</th>
+                    </tr>
+                    </thead>
+
+                    <tbody id="parameters_body">
+                    </tbody>
+                </table>
             </div>
             <div class="modal-footer">
+                <button type="button" class="btn btn-primary" id="update_parameter">Update</button>
             </div>
         </div>
     </div>
@@ -100,7 +111,7 @@
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h2 class="modal-title" style="text-align: center;"><strong>Add Code Util</strong></h2>
+                <h4 class="modal-title" style="text-align: center;"><strong>Add Code Util</strong></h4>
             </div>
             <div class="modal-body ">
                 <div class="row">
@@ -148,6 +159,7 @@
 <script src="js/bootstrap.js"></script>
 <script type="text/javascript" src="js/bootstrap-multiselect.js"></script>
 <script src="js/viz.js"></script>
+<script src="js/mindmup-editabletable.js"></script>
 <script>
     $(document).ready(function () {
         window.viz = new VizManager('graph');
@@ -192,24 +204,9 @@
             });
         });
 
-//        chart = viz.createGraph('Test1', 'LineChart', [1, 1]);
-//        var index = 1;
-//        setInterval(function () {
-//            chart.addPoint(index++, 0, [Math.random()]);
-//        }, 1000);
-
-
-
-//        chart2 = viz.createGraph('Test2', 'LineChart', [1, 1]);
-//        var index = 1;
-//        setInterval(function () {
-//            chart.addPoint(index++, 0, [Math.random()]);
-//        }, 1000);
-
         $('#graph_selector').multiselect({
             enableFiltering:true,
             onChange: function (option, checked, select) {
-//                alert('Changed option ' + $(option).val() + '. '+checked);
                 var id=$(option).val();
                 if(!checked){
                     $('#'+id).hide();
@@ -219,6 +216,63 @@
                 }
             }
         });
+
+
+
+        /**
+         * Test Case!
+         *
+         * **/
+
+//        chart = viz.createGraph('Test1', 'LineChart', [1, 1]);
+//        var index = 1;
+//        setInterval(function () {
+//            chart.addPoint(index++, 0, [Math.random()]);
+//        }, 1000);
+//
+//        chart2 = viz.createGraph('Test2', 'LineChart', [1, 1]);
+//        var index = 1;
+//        setInterval(function () {
+//            chart.addPoint(index++, 0, [Math.random()]);
+//        }, 1000);
+
+        var item = $('<tr>');
+        var cell1=$('<td>');
+        cell1.html('test_key');
+        var cell2=$('<td>').attr('name','test_key');
+        cell2.html('test_value');
+        item.append(cell1);
+        item.append(cell2);
+        $('#parameters_body').append(item);
+
+        var item2 = $('<tr>');
+        var cell1_2=$('<td>');
+        cell1_2.html('test_key2');
+        var cell2_2=$('<td>');
+        cell2_2.html('test_value2');
+        item2.append(cell1_2);
+        item2.append(cell2_2);
+        $('#parameters_body').append(item2);
+
+        $('#parameters_table').editableTableWidget();
+
+        window.paraMap={};
+
+//        $('table td').on('change', function(evt, newValue) {
+//            var key=$(evt.currentTarget).attr('name');
+//            var name=newValue;
+//
+//            window.paraMap[key]=name;
+//
+//            // if () {
+//            //     return false; // reject change
+//            // }
+//            return true;
+//        });
+
+        $('#update_parameter').click(viz.modifyParam);
+
+
     });
 </script>
 
