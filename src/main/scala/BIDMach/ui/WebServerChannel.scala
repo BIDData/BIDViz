@@ -28,14 +28,18 @@ import scala.tools.reflect.ToolBoxError
   * Created by han on 11/30/16.
   */
 class WebServerChannel(val learner: Learner) extends Learner.LearnerObserver {
+  val AVG_MESSAGE_TIME_MILLIS = 500 // one message to UI per every 200 millis
+  var lastMessageTimeMillis:Long = 0 // last time a message is sent in epoch millis
   var stats = MMap[String, StatFunction]()
   val interestingStats = List(
     ("Learner.Opts", learner.opts)
   )
   var server = LocalWebServer.mkNewServer(this)
-  var prevPass = -1
+  var prevPass = 0
   // server.startServer()
   loadAllMetricsFiles()
+
+  var shouldSendParams = false
 
   def mkJson(msgType: String, content: String): String =
     s"""
@@ -54,6 +58,7 @@ class WebServerChannel(val learner: Learner) extends Learner.LearnerObserver {
       val function = Eval.evaluateCodeToFunction(code)
       println(code)
       stats = stats + (name -> new StatFunction(name, code, size, theType, function))
+      saveMetricsFile(name+"$"+size+"$"+theType, code)
       return (0, "Code pushed is valid.")
     } catch {
       case e: ToolBoxError => return (1, e.getMessage())
@@ -84,6 +89,8 @@ class WebServerChannel(val learner: Learner) extends Learner.LearnerObserver {
         pauseTraining(values.as[JsValue])
       case "modifyParam" =>
         modifyParam(values.as[JsValue])
+      case "requestParam" =>
+        shouldSendParams = true
       case _ =>
         error("method not found")
     }
@@ -154,25 +161,35 @@ class WebServerChannel(val learner: Learner) extends Learner.LearnerObserver {
 
   override def notify(ipass: Int, model: Model, minibatch: Array[Mat]): Unit = {
     var messages = new ListBuffer[Message]
-    if (server.func != null) {
-      for ((name, f) <- stats) {
-        println(s"evaluating, $name")
-        val result = f.funcPointer(model, minibatch)
-        if (ipass > prevPass) {
+    var currentTime = System.currentTimeMillis()
+    prevPass += 1
+    println("time difference", currentTime - lastMessageTimeMillis, AVG_MESSAGE_TIME_MILLIS)
+    if ((currentTime - lastMessageTimeMillis)  > AVG_MESSAGE_TIME_MILLIS) {
+      println("here", server.func)
+      if (server.func != null) {
+        for ((name, f) <- stats) {
+          println(s"evaluating, $name")
+          val result = f.funcPointer(model, minibatch)
+          // if (ipass > prevPass) {
           val (sizes, data) = WebServerChannel.matToArr(result)
-          val content = DataPointContent(name, ipass, sizes, data, f.theType)
+          val content = DataPointContent(name, prevPass, sizes, data, f.theType)
           val message = Message("data_point", content)
           messages += message
+          // }
         }
-      }
-      for ((key, obj) <- interestingStats) {
-        if (obj != null) {
-          val m2 = computeStatsToMessage(key, obj)
-          messages += m2
+        if (shouldSendParams) {
+          for ((key, obj) <- interestingStats) {
+            if (obj != null) {
+              val m2 = computeStatsToMessage(key, obj)
+              messages += m2
+            }
+          }
+          shouldSendParams = false
         }
+        println("I am here")
+        server.func(Json.toJson(messages).toString)
+        lastMessageTimeMillis = currentTime
       }
-      server.func(Json.toJson(messages).toString)
-      prevPass = ipass
     }
   }
 }
