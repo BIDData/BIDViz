@@ -217,13 +217,13 @@
             }
         });
 
-
+        $('#parameters_table').editableTableWidget();
+        $('#update_parameter').click(viz.modifyParam);
 
         /**
          * Test Case!
          *
          * **/
-
 //        chart = viz.createGraph('Test1', 'LineChart', [1, 1]);
 //        var index = 1;
 //        setInterval(function () {
@@ -236,27 +236,27 @@
 //            chart.addPoint(index++, 0, [Math.random()]);
 //        }, 1000);
 
-        var item = $('<tr>');
-        var cell1=$('<td>');
-        cell1.html('test_key');
-        var cell2=$('<td>').attr('name','test_key');
-        cell2.html('test_value');
-        item.append(cell1);
-        item.append(cell2);
-        $('#parameters_body').append(item);
+//        var item = $('<tr>');
+//        var cell1=$('<td>');
+//        cell1.html('test_key');
+//        var cell2=$('<td>').attr('name','test_key');
+//        cell2.html('test_value');
+//        item.append(cell1);
+//        item.append(cell2);
+//        $('#parameters_body').append(item);
+//
+//        var item2 = $('<tr>');
+//        var cell1_2=$('<td>');
+//        cell1_2.html('test_key2');
+//        var cell2_2=$('<td>');
+//        cell2_2.html('test_value2');
+//        item2.append(cell1_2);
+//        item2.append(cell2_2);
+//        $('#parameters_body').append(item2);
 
-        var item2 = $('<tr>');
-        var cell1_2=$('<td>');
-        cell1_2.html('test_key2');
-        var cell2_2=$('<td>');
-        cell2_2.html('test_value2');
-        item2.append(cell1_2);
-        item2.append(cell2_2);
-        $('#parameters_body').append(item2);
 
-        $('#parameters_table').editableTableWidget();
 
-        window.paraMap={};
+//        window.paraMap={};
 
 //        $('table td').on('change', function(evt, newValue) {
 //            var key=$(evt.currentTarget).attr('name');
@@ -270,7 +270,6 @@
 //            return true;
 //        });
 
-        $('#update_parameter').click(viz.modifyParam);
 
 
     });
