@@ -251,7 +251,7 @@ function VizManager(root) {
     this.websocket = null;
     this.allCharts = {};
     this.root = root;
-    this.paraMap={};
+    this.paraMap = {};
     this.connect();
 }
 
@@ -294,25 +294,29 @@ VizManager.prototype.onmessage = function(event) {
                 this.allCharts[name] = chart;
             }
             var series = this.allCharts[name].addPoint(object.ipass, object.shape, object.data);
-        } else {
+        } else if (msg.msgType === 'parameters') {
+            console.log("here");
+            $("#parameters_body").html("");
+            console.log("clean");
             for (var key in msg.content) {
                 var item = $('<tr>');
                 var cell1=$('<td>');
                 cell1.html(key);
                 var cell2=$('<td>');
+                cell2.attr('name', key);
                 cell2.html(msg.content[key]);
                 item.append(cell1);
                 item.append(cell2);
                 $('#parameters_body').append(item);
             }
+            console.log("filled");
             $('#parameters_table').editableTableWidget();
-            
+
             var self=this;
-            
             $('table td').on('change', function(evt, newValue) {
-                var key=$(evt.currentTarget).attr('name');
-                var name=newValue;
-                self.paraMap[key]=name;
+                var key = $(evt.currentTarget).attr('name');
+                var name = newValue;
+                self.paraMap[key] = name;
                 return true;
             });
             
@@ -341,6 +345,7 @@ VizManager.prototype.createGraph = function(name, type, shape) {
 VizManager.prototype.onopen = function(event) {
     console.log("onopen.");
     this.websocket.send("hello");
+    postData({methodName: "requestParam"});
 }
 VizManager.prototype.onclose = function(event) {}
 VizManager.prototype.onerror = function(event) {}
@@ -365,10 +370,12 @@ VizManager.prototype.modifyParam = function() {
         methodName: "modifyParam",
         content: []
     };
+    console.log(this.paraMap);
     for(var key in this.paraMap){
-        var value=this.paraMap[key];
+        var value = this.paraMap[key];
         data.content.push({'key':key,'value':value});
     }
+    console.log(data);
     postData(data);
 }
 

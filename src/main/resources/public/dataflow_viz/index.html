@@ -189,6 +189,7 @@
             $('#my_modal').modal('hide');
         });
 
+
         $('#pause').click(function (event) {
             event.preventDefault();
             window.paused = !window.paused;
@@ -218,7 +219,7 @@
         });
 
         $('#parameters_table').editableTableWidget();
-        $('#update_parameter').click(viz.modifyParam);
+        $('#update_parameter').click(viz.modifyParam.bind(viz));
 
         /**
          * Test Case!

@@ -13,7 +13,7 @@ import BIDMat.MatFunctions._
 import BIDMat.SciFunctions._
 import BIDMach.Learner
 import BIDMach.models.Model
-import play.api.libs.json.{JsObject, JsValue, Json}
+import play.api.libs.json.{JsArray, JsObject, JsValue, Json}
 import play.api.routing.sird
 
 import scala.reflect.runtime.universe._
@@ -21,6 +21,7 @@ import scala.collection.mutable.{Map => MMap}
 import scala.collection.mutable.ListBuffer
 import scala.io.Source
 import java.io._
+
 import scala.tools.reflect.ToolBoxError
 
 
@@ -40,14 +41,6 @@ class WebServerChannel(val learner: Learner) extends Learner.LearnerObserver {
   loadAllMetricsFiles()
 
   var shouldSendParams = false
-
-  def mkJson(msgType: String, content: String): String =
-    s"""
-       |{
-       |  "msgType": "$msgType",
-       |  "content": $content
-       |}
-     """.stripMargin
 
   def addNewFunction(requestJson: JsValue): (Int, String) = {
     val name = (requestJson \ "name").as[String]
@@ -70,9 +63,14 @@ class WebServerChannel(val learner: Learner) extends Learner.LearnerObserver {
   }
 
   def modifyParam(args: JsValue): Unit = {
-    val key = (args \ "name").as[String]
-    val value = (args \ "value").as[String]
-    WebServerChannel.setValue(learner.opts, key, value)
+    for (a <- args.as[List[Map[String, String]]]) {
+      val key = a("key")
+      val value = a("value")
+      println("changed value", key, value)
+      WebServerChannel.setValue(learner.opts, key, value)
+      println(learner.opts.what)
+    }
+    shouldSendParams = true;
   }
 
   def handleRequest(requestJson: JsValue): (Int, String) = {
@@ -113,7 +111,7 @@ class WebServerChannel(val learner: Learner) extends Learner.LearnerObserver {
       if (value != null) {
         value2 = value.toString
       }
-      var key = acc.toString
+      var key = acc.toString().replace("method ", "");
       result += (key -> value2)
     }
     var map = Map(result.toList: _*)
