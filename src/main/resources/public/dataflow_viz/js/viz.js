@@ -141,6 +141,36 @@ function createGraphSuit(id) {
     return graph_suit;
 }
 
+function VegaLiteChart(id, name, size) {
+  this.spec = {
+    mode: 'vega-lite',
+    spec:{
+    "data": {
+      "values": [
+      ]
+    },
+    "mark": "line",
+    "encoding": {
+      "x": {"field": "0", "type": "quantitative"},
+      "y": {
+         "field": "1", "type": "quantitative",
+      }
+    }
+  }};
+  this.id = id;
+  this.name = name;
+  this.size = size;
+}
+
+VegaLiteChart.prototype.addPoint = function(ipass, size, values) {
+    this.spec.spec.data.values.push([ipass, values[0]]);
+    vg.embed('#' + this.id, this.spec, function(e, i) {
+        console.log('vega', e, i);
+    });
+}
+
+
+
 // Common interface for charts is addPoint( point ) where point is a matrix of conforming shape
 function LineChart(id, name, size) {
     this.id = id;
@@ -319,8 +349,8 @@ VizManager.prototype.onmessage = function(event) {
                 self.paraMap[key] = name;
                 return true;
             });
-            
-            
+        } else if (msg.msgType === 'error_message') {
+            $('#message').append(msg.content);
         }
     }
 }
@@ -337,6 +367,8 @@ VizManager.prototype.createGraph = function(name, type, shape) {
         chart = new LineChart(name, name, size);
     } else if (type === 'ColumnChart') {
         chart = new Histogram(name, name);
+    } else if (type === 'VegaLiteChart') {
+        chart = new VegaLiteChart(name, name);
     }
     this.allCharts[name] = chart;
     return chart;

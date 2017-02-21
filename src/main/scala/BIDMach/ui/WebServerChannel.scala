@@ -167,12 +167,23 @@ class WebServerChannel(val learner: Learner) extends Learner.LearnerObserver {
       if (server.func != null) {
         for ((name, f) <- stats) {
           println(s"evaluating, $name")
-          val result = f.funcPointer(model, minibatch)
+          var result:Mat = null
+          var exception:Throwable = null
+          try {
+            result = f.funcPointer(model, minibatch)
+            val (sizes, data) = WebServerChannel.matToArr(result)
+            val content = DataPointContent(name, prevPass, sizes, data, f.theType)
+            val message = Message("data_point", content)
+            messages += message
+          } catch {
+            case throwable: Throwable =>
+              exception = throwable
+              stats -= name // get rid of it from the map
+              val message = s"the chart ($name) had a runtime error: (${throwable.toString})"
+              val error = ErrorMessage(message)
+              messages += Message("error_message", error)
+          }
           // if (ipass > prevPass) {
-          val (sizes, data) = WebServerChannel.matToArr(result)
-          val content = DataPointContent(name, prevPass, sizes, data, f.theType)
-          val message = Message("data_point", content)
-          messages += message
           // }
         }
         if (shouldSendParams) {
@@ -184,7 +195,6 @@ class WebServerChannel(val learner: Learner) extends Learner.LearnerObserver {
           }
           shouldSendParams = false
         }
-        println("I am here")
         server.func(Json.toJson(messages).toString)
         lastMessageTimeMillis = currentTime
       }

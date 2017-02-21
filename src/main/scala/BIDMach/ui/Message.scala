@@ -19,6 +19,8 @@ case class ParameterContent(content: Map[String, String]) extends MessageContent
 case class StatFunction(name: String, code: String, size: Int,
                         theType: String, funcPointer: (Model, Array[Mat]) => Mat) extends MessageContent{}
 
+case class ErrorMessage(msg: String) extends MessageContent {}
+
 object Message {
   implicit val contentWrite = new Writes[MessageContent] {
     def writes(content: MessageContent) = content match {
@@ -31,6 +33,7 @@ object Message {
           "type" -> theType
       )
       case ParameterContent(c) => Json.toJson(c)
+      case ErrorMessage(msg) => Json.toJson(msg)
     }
   }
 
