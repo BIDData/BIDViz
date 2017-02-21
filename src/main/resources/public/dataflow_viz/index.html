@@ -195,16 +195,13 @@
                 code: code,
                 type: type
             };
-            console.log(window.viz.addStat(obj, function () {
-                window.editor.setValue('');
-                $('#name').val('');
-                viz.createGraph(name, type, size);
-            }, function (failed) {
-                alert(failed);
-                BootstrapDialog.show({
-                    title: 'Error',
-                    message: failed
-                });
+            console.log(window.viz.addStat(obj, function (msg) {
+                if (!msg.success) {
+                    BootstrapDialog.show({
+                        title: 'Error',
+                        message: msg.data
+                    });
+                }
             }));
             $('#my_modal').modal('hide');
         });

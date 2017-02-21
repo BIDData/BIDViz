@@ -20,6 +20,7 @@ case class StatFunction(name: String, code: String, size: Int,
                         theType: String, funcPointer: (Model, Array[Mat]) => Mat) extends MessageContent{}
 
 case class ErrorMessage(msg: String) extends MessageContent {}
+case class CallbackMessage(id: String, success: Boolean, data: String) extends MessageContent {}
 
 object Message {
   implicit val contentWrite = new Writes[MessageContent] {
@@ -34,6 +35,11 @@ object Message {
       )
       case ParameterContent(c) => Json.toJson(c)
       case ErrorMessage(msg) => Json.toJson(msg)
+      case CallbackMessage(id, success, data) => Json.obj(
+        "id" -> id,
+        "success" -> success,
+        "data" -> data
+      )
     }
   }
 

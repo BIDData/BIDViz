@@ -100,26 +100,6 @@ object  LocalWebServer {
               println("websocket")
               (in,out)
           }
-        case POST(p"/request") =>
-          Action { request =>
-            println(request.body)
-            var returnVal = ""
-            var status = 0
-            request.body.asJson match {
-              case None =>
-                returnVal = "bad content"
-              case Some(content) =>
-                var y = webServerChannel.handleRequest(content)
-                returnVal = y._2
-                status = y._1
-                println(content)
-            }
-            if (status == 0) {
-              Results.Ok(returnVal)
-            } else {
-              Results.NotAcceptable(returnVal)
-            }
-          }
 
         case GET(p"/assets/$file*")=>
           controllers.Assets.at(path="/public", file=file)

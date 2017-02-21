@@ -283,6 +283,34 @@ function VizManager(root) {
     this.root = root;
     this.paraMap = {};
     this.connect();
+
+    this.ongoingRequest = {}
+    this.requestCount = 0
+}
+
+// Send data to server
+VizManager.prototype.sendData = function(data, callback) {
+    var id = 'request' + this.requestCount;
+    var message = {
+        id: id,
+        content: data
+    }
+    if (callback != null) {
+        this.ongoingRequest[id] = callback;
+    }
+    this.requestCount++;
+    this.websocket.send(JSON.stringify(message));
+}
+
+VizManager.prototype.handleCallback = function(content) {
+    console.log("here", content.id, this.ongoingRequest);
+    if (content.id in this.ongoingRequest) {
+        callback = this.ongoingRequest[content.id];
+        if (callback != null) {
+            callback(content);
+        }
+        delete this.ongoingRequest[content.id];
+    }
 }
 
 VizManager.prototype.connect = function() {
@@ -307,6 +335,41 @@ VizManager.prototype.connect = function() {
 //        "data" -> data
 //      )
 
+VizManager.prototype.handleDataPoint = function(object) {
+    var name = object.name;
+    if (!(name in this.allCharts)) {
+        var chart = this.createGraph(name, object.type, object.shape);
+        this.allCharts[name] = chart;
+    }
+    var series = this.allCharts[name].addPoint(object.ipass, object.shape, object.data);
+}
+VizManager.prototype.handleParameters = function(object) {
+    console.log("here");
+    $("#parameters_body").html("");
+    console.log("clean");
+    for (var key in object) {
+        var item = $('<tr>');
+        var cell1=$('<td>');
+        cell1.html(key);
+        var cell2=$('<td>');
+        cell2.attr('name', key);
+        cell2.html(object[key]);
+        item.append(cell1);
+        item.append(cell2);
+        $('#parameters_body').append(item);
+    }
+    console.log("filled");
+    $('#parameters_table').editableTableWidget();
+
+    var self=this;
+    $('table td').on('change', function(evt, newValue) {
+        var key = $(evt.currentTarget).attr('name');
+        var name = newValue;
+        self.paraMap[key] = name;
+        return true;
+    });
+}
+
 VizManager.prototype.onmessage = function(event) {
     console.log("raw data", event.data);
     if (event.data.length == 0) {
@@ -316,41 +379,21 @@ VizManager.prototype.onmessage = function(event) {
     var msgs = $.parseJSON(event.data);
     for (var x in msgs) {
         var msg = msgs[x];
-        if (msg.msgType === 'data_point') {
-            var object = msg.content;
-            var name = object.name;
-            if (!(name in this.allCharts)) {
-                var chart = this.createGraph(name, object.type, object.shape);
-                this.allCharts[name] = chart;
-            }
-            var series = this.allCharts[name].addPoint(object.ipass, object.shape, object.data);
-        } else if (msg.msgType === 'parameters') {
-            console.log("here");
-            $("#parameters_body").html("");
-            console.log("clean");
-            for (var key in msg.content) {
-                var item = $('<tr>');
-                var cell1=$('<td>');
-                cell1.html(key);
-                var cell2=$('<td>');
-                cell2.attr('name', key);
-                cell2.html(msg.content[key]);
-                item.append(cell1);
-                item.append(cell2);
-                $('#parameters_body').append(item);
-            }
-            console.log("filled");
-            $('#parameters_table').editableTableWidget();
-
-            var self=this;
-            $('table td').on('change', function(evt, newValue) {
-                var key = $(evt.currentTarget).attr('name');
-                var name = newValue;
-                self.paraMap[key] = name;
-                return true;
-            });
-        } else if (msg.msgType === 'error_message') {
-            $('#message').append(msg.content);
+        var object = msg.content;
+        switch (msg.msgType) {
+            case 'data_point':
+                this.handleDataPoint(object);
+                break;
+            case 'parameters':
+                this.handleParameters(object);
+                break;
+            case 'error_message':
+                $('#message').append(object);
+                break;
+            case 'callback':
+                console.log("callback");
+                this.handleCallback(object);
+                break;
         }
     }
 }
@@ -376,8 +419,8 @@ VizManager.prototype.createGraph = function(name, type, shape) {
 
 VizManager.prototype.onopen = function(event) {
     console.log("onopen.");
-    this.websocket.send("hello");
-    postData({methodName: "requestParam"});
+    // this.websocket.send("");
+    this.sendData({methodName: "requestParam"});
 }
 VizManager.prototype.onclose = function(event) {}
 VizManager.prototype.onerror = function(event) {}
@@ -386,7 +429,7 @@ VizManager.prototype.addStat = function(obj, callback, failure) {
         methodName: "addFunction",
         content: obj
     };
-    postData(data, callback, failure);
+    this.sendData(data, callback);
 }
 
 VizManager.prototype.pauseTraining = function(value, callback) {
@@ -394,7 +437,7 @@ VizManager.prototype.pauseTraining = function(value, callback) {
         methodName: "pauseTraining",
         content: value
     };
-    postData(data, callback);
+    this.sendData(data, callback);
 }
 
 VizManager.prototype.modifyParam = function() {
@@ -408,6 +451,6 @@ VizManager.prototype.modifyParam = function() {
         data.content.push({'key':key,'value':value});
     }
     console.log(data);
-    postData(data);
+    this.sendData(data);
 }
 

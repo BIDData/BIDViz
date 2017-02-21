@@ -35,14 +35,12 @@ class WebServerChannel(val learner: Learner) extends Learner.LearnerObserver {
   val interestingStats = List(
     ("Learner.Opts", learner.opts)
   )
-  var server = LocalWebServer.mkNewServer(this)
+  var server = new VizWebServer(this)
   var prevPass = 0
   // server.startServer()
   loadAllMetricsFiles()
 
-  var shouldSendParams = false
-
-  def addNewFunction(requestJson: JsValue): (Int, String) = {
+  def addNewFunction(requestJson: JsValue): String = {
     val name = (requestJson \ "name").as[String]
     val code = (requestJson \ "code").as[String]
     val size = 1
@@ -52,9 +50,9 @@ class WebServerChannel(val learner: Learner) extends Learner.LearnerObserver {
       println(code)
       stats = stats + (name -> new StatFunction(name, code, size, theType, function))
       saveMetricsFile(name+"$"+size+"$"+theType, code)
-      return (0, "Code pushed is valid.")
+      return null
     } catch {
-      case e: ToolBoxError => return (1, e.getMessage())
+      case e: ToolBoxError => return e.getMessage()
     }
   }
 
@@ -70,29 +68,41 @@ class WebServerChannel(val learner: Learner) extends Learner.LearnerObserver {
       WebServerChannel.setValue(learner.opts, key, value)
       println(learner.opts.what)
     }
-    shouldSendParams = true;
   }
 
-  def handleRequest(requestJson: JsValue): (Int, String) = {
+  def requestParam() = {
+    var messages = new ListBuffer[Message]
+    for ((key, obj) <- interestingStats) {
+      if (obj != null) {
+        val m2 = computeStatsToMessage(key, obj)
+        messages += m2
+      }
+    }
+    server.func(Json.toJson(messages).toString())
+  }
+
+  def handleRequest(requestJson: JsValue): CallbackMessage = {
     val methodName = (requestJson \ "methodName").as[String]
     val values = requestJson \ "content"
-    var status: Int = 0
-    var msg: String = "good"
+    var message: String = null
     methodName match {
       case "addFunction" =>
-        var result = addNewFunction(values.as[JsValue])
-        status = result._1
-        msg = result._2
+        message = addNewFunction(values.as[JsValue])
       case "pauseTraining" =>
         pauseTraining(values.as[JsValue])
       case "modifyParam" =>
         modifyParam(values.as[JsValue])
       case "requestParam" =>
-        shouldSendParams = true
+        requestParam()
       case _ =>
-        error("method not found")
+
     }
-    (status, msg)
+    if (message == null) {
+      return CallbackMessage("", true, "")
+    } else {
+      return CallbackMessage("", false, message)
+    }
+
   }
 
   def computeStatsToMessage(name:String, x: AnyRef): Message = {
@@ -163,7 +173,6 @@ class WebServerChannel(val learner: Learner) extends Learner.LearnerObserver {
     prevPass += 1
     println("time difference", currentTime - lastMessageTimeMillis, AVG_MESSAGE_TIME_MILLIS)
     if ((currentTime - lastMessageTimeMillis)  > AVG_MESSAGE_TIME_MILLIS) {
-      println("here", server.func)
       if (server.func != null) {
         for ((name, f) <- stats) {
           println(s"evaluating, $name")
@@ -183,17 +192,6 @@ class WebServerChannel(val learner: Learner) extends Learner.LearnerObserver {
               val error = ErrorMessage(message)
               messages += Message("error_message", error)
           }
-          // if (ipass > prevPass) {
-          // }
-        }
-        if (shouldSendParams) {
-          for ((key, obj) <- interestingStats) {
-            if (obj != null) {
-              val m2 = computeStatsToMessage(key, obj)
-              messages += m2
-            }
-          }
-          shouldSendParams = false
         }
         server.func(Json.toJson(messages).toString)
         lastMessageTimeMillis = currentTime
