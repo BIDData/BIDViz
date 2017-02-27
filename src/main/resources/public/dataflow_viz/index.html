@@ -88,7 +88,6 @@
         </div>
         <div class="col-md-4">
             <div id="message"></div>
-            <input id="cmd" />
         </div>
     </div>
 </div>
@@ -161,6 +160,8 @@
 
 
 <script src="js/jquery-3.0.0.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.terminal/1.0.7/js/jquery.terminal.min.js"></script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/jquery.terminal/1.0.7/css/jquery.terminal.min.css" rel="stylesheet"/>
 <script src="http://ajaxorg.github.io/ace-builds/src-min-noconflict/ace.js" type="text/javascript" charset="utf-8"></script>
 <script src="https://code.highcharts.com/highcharts.js"></script>
 <script src="https://code.highcharts.com/modules/exporting.js"></script>
@@ -220,18 +221,32 @@
 
         $('#parameters_table').editableTableWidget();
         $('#update_parameter').click(viz.modifyParam.bind(viz));
-        $('#cmd').keypress(function(event) {
-          if ( event.which == 13 ) {
-             event.preventDefault();
-             code = $(this).val();
-             if (code == ':clear') {
-                $('#message').html('');
-                return;
-             }
-             viz.evalCommand(code, function(result) {
-                $('#message').append(result.data + '\n');
-             });
-          }
+
+        jQuery(function($, undefined) {
+            $('#message').terminal(function(command) {
+                var term = this;
+                if (command !== '') {
+                    try {
+                        viz.evalCommand(command, function(result) {
+                            if (result.success) {
+                                term.echo(result.data);
+                            } else {
+                                term.error(result.data);
+                            }
+                        });
+                    } catch(e) {
+                        this.error(new String(e));
+                    }
+                } else {
+                   this.echo('');
+                }
+            }, {
+                greetings: 'Terminal',
+                name: 'scala',
+                height: 600,
+                weight: 500,
+                prompt: 'scala> '
+            });
         });
 
         /**

@@ -1,9 +1,1 @@
-    import BIDMat.SMat
-    import BIDMat.MatFunctions._
-    var m:Mat = null
-    model.mats(0) match {
-     case i:TMat => m = variance(i.tiles(0)(?)); println(i)
-     case i:SMat => m = variance(row(i.data))
-     case i:Mat => m = variance(i(?))
-   }
-   m
+variance(model.modelmats(1))

@@ -402,7 +402,7 @@ VizManager.prototype.onmessage = function(event) {
                 this.handleParameters(object);
                 break;
             case 'error_message':
-                $('#message').append(object.msg);
+                $('#message').terminal().error(object.msg);
                 break;
             case 'callback':
                 console.log("callback");

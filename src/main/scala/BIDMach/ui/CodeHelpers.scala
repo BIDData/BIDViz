@@ -1,6 +1,6 @@
 package BIDMach.ui
 
-import BIDMat.{Mat, FMat}
+import BIDMat.{FMat, GMat, Mat}
 import BIDMat.MatFunctions._
 import BIDMat.SciFunctions._
 
@@ -14,12 +14,19 @@ object CodeHelpers {
 
   def toHistogram(input: Mat, buckets:Int): Mat = {
     var result = zeros(buckets, 2)
-    var maximun:Float = maxi(input(?), 1).asInstanceOf[FMat](0,0)
-    var minimun:Float = mini(input(?), 1).asInstanceOf[FMat](0,0)
+    var maximun:Float = maxi(input(?), 1) match {
+      case i: GMat => i (0, 0)
+      case i: Mat => i.asInstanceOf[FMat] (0, 0)
+    }
+    var minimun:Float = mini(input(?), 1) match {
+      case i: GMat => i (0, 0)
+      case i: Mat => i.asInstanceOf[FMat] (0, 0)
+    }
     if (maximun > minimun) {
       var size = (maximun - minimun) / buckets
-      for (elm <- 0 until input(?).size) {
-        val current = input(?).asInstanceOf[FMat](elm)
+      var f:FMat = FMat(input(?))
+      for (elm <- 0 until f.size) {
+        var current = f(elm)
         var position = ((current - minimun) / size).toInt
         if (position >= result.nrows) {
           position = result.nrows - 1

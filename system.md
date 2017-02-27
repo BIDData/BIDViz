@@ -66,7 +66,19 @@ into the current running environment using Java classloader.
 
 ## Architecture of the Web UI
 
-Web UI is built using jQuery
+The web UI is responsible for the following task:
+
+* When receive a data point to be displayed, route it to the correct chart.
+* Maintains a UI to insert a code snippet and send that to the server.
+* Maintains a UI for viewing and modifying hyperparameters.
+
+The central object in the Web UI is the VizManager object.
+The VizManager is a singleton that is instantiated on start of the web app,
+and stabilishes a websocket connection with the server. 
+Once the connection is stabilished, it may start receiving events from server.
+Events are written in JSON format
+
+
 
 
 
