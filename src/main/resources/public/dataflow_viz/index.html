@@ -90,13 +90,7 @@
             <div id="graph" class="row">
             </div>
         </div>
-<<<<<<< b0c70ca464af30e41af2b09c60300b9b1e3a0fc3
-        <div class="col-md-4">
-            <div id="message"></div>
-        </div>
-=======
 
->>>>>>> modify alert, graph hide
     </div>
 </div>
 
@@ -231,22 +225,22 @@
         $('#update_parameter').click(viz.modifyParam.bind(viz));
 
         jQuery(function($, undefined) {
-            $('#message').terminal(function(command) {
+            $('#message').terminal(function (command) {
                 var term = this;
                 if (command !== '') {
                     try {
-                        viz.evalCommand(command, function(result) {
+                        viz.evalCommand(command, function (result) {
                             if (result.success) {
                                 term.echo(result.data);
                             } else {
                                 term.error(result.data);
                             }
                         });
-                    } catch(e) {
+                    } catch (e) {
                         this.error(new String(e));
                     }
                 } else {
-                   this.echo('');
+                    this.echo('');
                 }
             }, {
                 greetings: 'Terminal',
@@ -257,37 +251,37 @@
             });
 
 
-        $('#codeInput').click(function () {
-           $('.collapse').collapse('hide');
-        });
+            $('#codeInput').click(function () {
+                $('.collapse').collapse('hide');
+            });
 
-        /**
-         * Test Case!
-         *
-         * **/
+            /**
+             * Test Case!
+             *
+             * **/
 
-        chart = viz.createGraph('Test1', 'LineChart', [1, 1]);
-        chart2 = viz.createGraph('Test2', 'LineChart', [1, 1]);
-        var index = 1;
-        setInterval(function () {
-            chart.addPoint(index++, 0, [Math.random()]);
-            chart2.addPoint(index++, 0, [Math.random()])
-        }, 1000);
+            chart = viz.createGraph('Test1', 'LineChart', [1, 1]);
+            chart2 = viz.createGraph('Test2', 'LineChart', [1, 1]);
+            var index = 1;
+            setInterval(function () {
+                chart.addPoint(index++, 0, [Math.random()]);
+                chart2.addPoint(index++, 0, [Math.random()])
+            }, 1000);
 
 
-        $('#graph_selector').multiselect({
-            enableFiltering: true,
-            onChange: function (option, checked, select) {
-                var id = $(option).val();
-                if (!checked) {
-                    $('#' + id+'_suit').css('display','none');
+            $('#graph_selector').multiselect({
+                enableFiltering: true,
+                onChange: function (option, checked, select) {
+                    var id = $(option).val();
+                    if (!checked) {
+                        $('#' + id + '_suit').css('display', 'none');
+                    }
+                    else {
+                        $('#' + id + '_suit').css('display', 'block');
+                    }
                 }
-                else {
-                    $('#' + id+'_suit').css('display','block');
-                }
-            }
+            });
         });
-
 
 //        window.paraMap={};
 
