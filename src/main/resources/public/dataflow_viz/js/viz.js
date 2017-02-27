@@ -243,6 +243,45 @@ Histogram.prototype.addPoint = function(ipass, sizes, values) {
     this.chart.series[0].setData(datas, true, true, true);
 }
 
+function ScatterPlot(id, name) {
+    this.id = id;
+    this.name = name;
+    this.chart = new Highcharts.Chart({
+        chart: {
+            renderTo: id,
+            type: 'scatter',
+            zoomType: 'xy',
+        },
+        title: {
+            text: name
+        },
+        xAxis: {
+            startOnTick: true,
+            endOnTick: true,
+            showLastLabel: true
+        },
+        series: [{
+            name: name,
+            color: 'rgba(119, 152, 191, .5)',
+            data: [],
+            pointPadding: 0,
+            groupPadding: 0,
+            pointPlacement: 'between'
+        }]
+    });
+}
+
+ScatterPlot.prototype.addPoint = function(ipass, sizes, values) {
+    var datas = [];
+    for (var i = 0; i < sizes[0]; i += sizes[1]) {
+        var p = [Number(values[i]), Number(values[i + 1])];
+        datas.push(p);
+    }
+    console.log("calling setData", datas);
+    this.chart.series[0].setData(datas, true, true, true);
+}
+
+
 function VizManager(root) {
     // make VizManager
     // need to: control changes to the graph
@@ -387,6 +426,8 @@ VizManager.prototype.createGraph = function(name, type, shape) {
         chart = new Histogram(name, name);
     } else if (type === 'VegaLiteChart') {
         chart = new VegaLiteChart(name, name);
+    } else if (type == 'ScatterPlot') {
+        chart = new ScatterPlot(name, name);
     }
     this.allCharts[name] = chart;
     return chart;

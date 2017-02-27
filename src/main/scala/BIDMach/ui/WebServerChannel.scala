@@ -179,14 +179,16 @@ class WebServerChannel(val learner: Learner) extends Learner.LearnerObserver {
   def loadAllMetricsFiles() = {
     val listOfFiles = getListOfFiles(WebServerChannel.metricLocation)
     for (filename <- listOfFiles) {
-      val metricsCode = loadMetricsFile(WebServerChannel.metricLocation + filename)
-      val metricsInfo = filename.split("\\$")
-      val metricsName = metricsInfo(0)
-      val metricsSize = metricsInfo(1).toInt
-      val metricsType = metricsInfo(2)
-      val metricsFunction = Eval.evaluateCodeToFunction(metricsCode)
-      stats = stats + (metricsName -> new StatFunction(metricsName, metricsCode,
-        metricsSize, metricsType, metricsFunction))
+      if (filename(0) != '.') {
+        val metricsCode = loadMetricsFile(WebServerChannel.metricLocation + filename)
+        val metricsInfo = filename.split("\\$")
+        val metricsName = metricsInfo(0)
+        val metricsSize = metricsInfo(1).toInt
+        val metricsType = metricsInfo(2)
+        val metricsFunction = Eval.evaluateCodeToFunction(metricsCode)
+        stats = stats + (metricsName -> new StatFunction(metricsName, metricsCode,
+          metricsSize, metricsType, metricsFunction))
+      }
     }
   }
 
