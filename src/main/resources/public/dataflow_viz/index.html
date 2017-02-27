@@ -88,6 +88,7 @@
         </div>
         <div class="col-md-4">
             <div id="message"></div>
+            <input id="cmd" />
         </div>
     </div>
 </div>
@@ -97,9 +98,6 @@
      aria-labelledby="my_modal_label2" aria-hidden="true">
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
-            <div class="modal-header">
-                <h4 class="modal-title" style="text-align: center;"><strong>Parameters</strong></h4>
-            </div>
             <div class="modal-body ">
                 <table class="table table-striped" id="parameters_table">
                     <thead>
@@ -124,9 +122,6 @@
      aria-labelledby="my_modal_label" aria-hidden="true">
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
-            <div class="modal-header">
-                <h4 class="modal-title" style="text-align: center;"><strong>Add Code Util</strong></h4>
-            </div>
             <div class="modal-body ">
                 <div class="row">
                     <div style="margin-bottom: 0px">
@@ -224,6 +219,19 @@
 
         $('#parameters_table').editableTableWidget();
         $('#update_parameter').click(viz.modifyParam.bind(viz));
+        $('#cmd').keypress(function(event) {
+          if ( event.which == 13 ) {
+             event.preventDefault();
+             code = $(this).val();
+             if (code == ':clear') {
+                $('#message').html('');
+                return;
+             }
+             viz.evalCommand(code, function(result) {
+                $('#message').append(result.data + '\n');
+             });
+          }
+        });
 
         /**
          * Test Case!

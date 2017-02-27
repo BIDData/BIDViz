@@ -40,7 +40,7 @@ class WebServerChannel(val learner: Learner) extends Learner.LearnerObserver {
   // server.startServer()
   loadAllMetricsFiles()
 
-  def addNewFunction(requestJson: JsValue): String = {
+  def addNewFunction(requestJson: JsValue): (Boolean, String) = {
     val name = (requestJson \ "name").as[String]
     val code = (requestJson \ "code").as[String]
     val size = 1
@@ -50,17 +50,19 @@ class WebServerChannel(val learner: Learner) extends Learner.LearnerObserver {
       println(code)
       stats = stats + (name -> new StatFunction(name, code, size, theType, function))
       saveMetricsFile(name+"$"+size+"$"+theType, code)
-      return null
+      return (true, "")
     } catch {
-      case e: ToolBoxError => return e.getMessage()
+      case e: ToolBoxError => return (false, e.getMessage())
     }
   }
 
-  def pauseTraining(args: JsValue) = {
+  def pauseTraining(args: JsValue): (Boolean, String) = {
+    println("pausing ", args)
     learner.paused = args.as[Boolean]
+    (true, "")
   }
 
-  def modifyParam(args: JsValue): Unit = {
+  def modifyParam(args: JsValue): (Boolean, String) = {
     for (a <- args.as[List[Map[String, String]]]) {
       val key = a("key")
       val value = a("value")
@@ -68,9 +70,10 @@ class WebServerChannel(val learner: Learner) extends Learner.LearnerObserver {
       WebServerChannel.setValue(learner.opts, key, value)
       println(learner.opts.what)
     }
+    (true, "")
   }
 
-  def requestParam() = {
+  def requestParam(): (Boolean, String) = {
     var messages = new ListBuffer[Message]
     for ((key, obj) <- interestingStats) {
       if (obj != null) {
@@ -79,30 +82,50 @@ class WebServerChannel(val learner: Learner) extends Learner.LearnerObserver {
       }
     }
     server.func(Json.toJson(messages).toString())
+    (true, "")
+  }
+
+  def evaluateCommand(jsValue: JsValue): (Boolean, String) = {
+    val code = (jsValue \ "code").as[String]
+    try {
+      val func = Eval.evaluateCodeToCommand(code)
+      val result = func(learner).toString
+      return (true, result)
+    } catch {
+      case e: ToolBoxError => return (false, e.getMessage())
+      case e: Throwable => return (false, e.toString())
+    }
   }
 
   def handleRequest(requestJson: JsValue): CallbackMessage = {
     val methodName = (requestJson \ "methodName").as[String]
     val values = requestJson \ "content"
     var message: String = null
+    var status: Boolean = false
+    println("HAN method name", methodName)
     methodName match {
       case "addFunction" =>
-        message = addNewFunction(values.as[JsValue])
+        val (s, m) = addNewFunction(values.as[JsValue])
+        message = m
+        status = s
       case "pauseTraining" =>
-        pauseTraining(values.as[JsValue])
+        val (s, m) = pauseTraining(values.as[JsValue])
+        message = m
+        status = s
       case "modifyParam" =>
-        modifyParam(values.as[JsValue])
+        val (s, m) = modifyParam(values.as[JsValue])
+        message = m
+        status = s
       case "requestParam" =>
-        requestParam()
-      case _ =>
-
+        val (s, m) = requestParam()
+        message = m
+        status = s
+      case "evaluateCommand" =>
+        val (s, m) = evaluateCommand(values.as[JsValue])
+        message = m
+        status = s
     }
-    if (message == null) {
-      return CallbackMessage("", true, "")
-    } else {
-      return CallbackMessage("", false, message)
-    }
-
+    return CallbackMessage("", status, message)
   }
 
   def computeStatsToMessage(name:String, x: AnyRef): Message = {

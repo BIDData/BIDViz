@@ -34,15 +34,15 @@ object Eval {
       | scala.reflect.classTag[%s].runtimeClass
     """.stripMargin
 
-  val varTemplate =
+  val commandTemplate =
     """
       |import BIDMach.models.Model
       |import BIDMat.Mat
       |import BIDMat.MatFunctions._
       |import BIDMach.Learner
-      | class %s extends Function[Learner.Options, Unit] {
-      |   override def apply(opts: Learner.Options): Unit = {
-      |     opts.%s = %s
+      | class %s extends Function[Learner, Any] {
+      |   override def apply(learner: Learner): Any = {
+      |     %s
       |   }
       | }
       | scala.reflect.classTag[%s].runtimeClass
@@ -65,9 +65,9 @@ object Eval {
     return getFunctor[(Model, Array[Mat]) => Mat](completeCode)
   }
 
-  def evaluatePar(parName: String, parValue: String): Learner.Options => Unit = {
-    val completeCode = varTemplate.format("Classname", parName, parValue, "Classname")
-    return getFunctor[Learner.Options => Unit](completeCode)
+  def evaluateCodeToCommand(code: String): (Learner => AnyRef) = {
+    val completeCode = commandTemplate.format("Classname", code, "Classname")
+    return getFunctor[(Learner) => AnyRef](completeCode)
   }
 
 }

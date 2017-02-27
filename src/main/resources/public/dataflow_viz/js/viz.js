@@ -141,35 +141,6 @@ function createGraphSuit(id) {
     return graph_suit;
 }
 
-function VegaLiteChart(id, name, size) {
-  this.spec = {
-    mode: 'vega-lite',
-    spec:{
-    "data": {
-      "values": [
-      ]
-    },
-    "mark": "line",
-    "encoding": {
-      "x": {"field": "0", "type": "quantitative"},
-      "y": {
-         "field": "1", "type": "quantitative",
-      }
-    }
-  }};
-  this.id = id;
-  this.name = name;
-  this.size = size;
-}
-
-VegaLiteChart.prototype.addPoint = function(ipass, size, values) {
-    this.spec.spec.data.values.push([ipass, values[0]]);
-    vg.embed('#' + this.id, this.spec, function(e, i) {
-        console.log('vega', e, i);
-    });
-}
-
-
 
 // Common interface for charts is addPoint( point ) where point is a matrix of conforming shape
 function LineChart(id, name, size) {
@@ -182,7 +153,6 @@ function LineChart(id, name, size) {
     }
     var series = [];
     for (var i = 0; i < size; i++) {
-        console.log("i am here")
         series.push({
             data: []
         });
@@ -294,22 +264,27 @@ VizManager.prototype.sendData = function(data, callback) {
     var message = {
         id: id,
         content: data
-    }
+    };
     if (callback != null) {
+        console.log("addedRequest");
         this.ongoingRequest[id] = callback;
+        console.log(this.ongoingRequest);
     }
     this.requestCount++;
+    console.log("sendData", message);
     this.websocket.send(JSON.stringify(message));
 }
 
 VizManager.prototype.handleCallback = function(content) {
-    console.log("here", content.id, this.ongoingRequest);
+    console.log("callback", content.id, this.ongoingRequest);
     if (content.id in this.ongoingRequest) {
         callback = this.ongoingRequest[content.id];
         if (callback != null) {
             callback(content);
         }
         delete this.ongoingRequest[content.id];
+    } else {
+        console.log("no request ");
     }
 }
 
@@ -388,7 +363,7 @@ VizManager.prototype.onmessage = function(event) {
                 this.handleParameters(object);
                 break;
             case 'error_message':
-                $('#message').append(object);
+                $('#message').append(object.msg);
                 break;
             case 'callback':
                 console.log("callback");
@@ -454,3 +429,12 @@ VizManager.prototype.modifyParam = function() {
     this.sendData(data);
 }
 
+VizManager.prototype.evalCommand = function(code, callback) {
+    var data = {
+        methodName: "evaluateCommand",
+        content: {
+            "code" : code
+        }
+    };
+    this.sendData(data, callback)
+}

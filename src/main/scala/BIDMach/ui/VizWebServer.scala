@@ -38,15 +38,19 @@ class VizWebServer(webServerChannel: WebServerChannel) {
           val in = Iteratee.foreach[String] {
             msg =>
               func = channel push _
-              if (msg != "") {
+              try {
                 val jsonVal = Json.parse(msg)
                 val requestId = (jsonVal \ "id").as[String]
                 val content = (jsonVal \ "content").as[JsValue]
                 var message = webServerChannel.handleRequest(content)
                 message = CallbackMessage(requestId, message.success, message.data)
+                println("HAN", message)
                 // the Enumerator returned by Concurrent.broadcast subscribes to the channel and will
                 // receive the pushed messages
                 channel push Json.toJson(Seq(Message("callback", message))).toString()
+              } catch {
+                case x: Exception =>
+                  x.printStackTrace()
               }
           }
           (in,out)
