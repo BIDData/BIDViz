@@ -31,3 +31,34 @@
 pre{
     font-size: 15px;
 }
+
+.slide_command{
+    position: fixed;
+    top: 100px;
+    right: 0px;
+    z-index: 1000;
+}
+
+.slide_panel {
+    width:500px;
+    float:right;
+    height:700px;
+    background:#d9dada;
+    position:relative;
+    right:-500px;
+
+}
+
+.slider-arrow {
+    padding: 12px;
+    padding-right: 18px;
+    width: 25px;
+    height: 45px;
+    float:right;
+    background:#000;
+    font:400 15px Arial, Helvetica, sans-serif;
+    color:#eeeeee;
+    text-decoration:none;
+    position:relative;
+    right:-500px;
+}
