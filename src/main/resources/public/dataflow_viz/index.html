@@ -42,6 +42,10 @@
         }
     </style>
 
+    <script src="//d3js.org/d3.v3.min.js"></script>
+    <script src="/js/vega.js"></script>
+    <script src="/js/vega-lite.js"></script>
+    <script src="/js/vega-embed.js" charset="utf-8"></script>
 
 </head>
 
@@ -263,18 +267,6 @@
                 $('.collapse').collapse('hide');
             });
 
-            /**
-             * Test Case!
-             *
-             * **/
-
-            chart = viz.createGraph('Test1', 'LineChart', [1, 1]);
-            chart2 = viz.createGraph('Test2', 'LineChart', [1, 1]);
-            var index = 1;
-            setInterval(function () {
-                chart.addPoint(index++, 0, [Math.random()]);
-                chart2.addPoint(index++, 0, [Math.random()])
-            }, 1000);
 
             $('#graph_selector').multiselect({
                 enableFiltering: true,

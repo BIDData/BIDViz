@@ -141,6 +141,49 @@ function createGraphSuit(id) {
     return graph_suit;
 }
 
+function VegaLiteChart(id, name, size) {
+    this.id = id;
+    this.name = name;
+    this.size = size;
+    this.spec = {
+      "data": {
+        "values": [
+        ]
+      },
+      "mark": "point",
+      "encoding": {
+        "x": {
+            "field": "0", "type": "quantitative", "range":"width",
+            "scale": {"zero": false}
+        },
+        "y": {"field": "1", "type": "quantitative"}
+      }
+    }
+    var embedSpec = {
+    mode: "vega-lite",  // Instruct Vega-Embed to use the Vega-Lite compiler
+    spec: this.spec
+    // You can add more vega-embed configuration properties here.
+    // See https://github.com/vega/vega/wiki/Embed-Vega-Web-Components#configuration-propeties for more information.
+  };
+    this.data = [];
+  // Embed the visualization in the container with id `vis`
+  vg.embed('#' + id, embedSpec, function(error, result) {
+  });
+}
+
+VegaLiteChart.prototype.addPoint = function(ipass, sizes, values) {
+    this.data.push([ipass, Number(values[0])]);
+    this.spec.data.values = this.data.slice(this.data.length - 20);
+    var embedSpec = {
+        mode: "vega-lite",  // Instruct Vega-Embed to use the Vega-Lite compiler
+        spec: this.spec
+    };
+  vg.embed('#' + this.id, embedSpec, function(error, result) {
+    console.log(error, result);
+  });
+}
+
+
 
 // Common interface for charts is addPoint( point ) where point is a matrix of conforming shape
 function LineChart(id, name, size) {
@@ -479,4 +522,10 @@ VizManager.prototype.evalCommand = function(code, callback) {
         }
     };
     this.sendData(data, callback)
+}
+VizManager.prototype.getCode = function(name, callback) {
+    callback({
+        success: true,
+        content: "rand(1,1);"
+    });
 }
