@@ -114,13 +114,13 @@ function postData(data, callback, failure) {
         url: '/request',
         contentType: 'application/json',
         data: JSON.stringify(data),
-        success: function(event) {
+        success: function (event) {
             console.log(event);
             if (callback) {
                 callback(event);
             }
         },
-        error: function(event, status, error) {
+        error: function (event, status, error) {
             console.log(event, status, error);
             console.log(failure);
             if (failure) {
@@ -131,13 +131,13 @@ function postData(data, callback, failure) {
 }
 
 function createGraphSuit(id) {
-    var graph_suit = $("<div></div>").addClass("graph_suit").addClass("col-md-6").attr("id",id+'_suit').css("width","50%").css("height", "450px").css("margin-bottom", "60px");
+    var graph_suit = $("<div></div>").addClass("graph_suit").addClass("col-md-6").attr("id", id + '_suit').css("width", "50%").css("height", "450px").css("margin-bottom", "60px");
     var graph = $("<div></div>").attr("id", id).css("margin", "0 auto");
     graph_suit.append(graph);
-    var select_option=$("<option></option>").val(id).text(id).attr("selected","selected");
-    var graph_selector=$('#graph_selector');
+    var select_option = $("<option></option>").val(id).text(id).attr("selected", "selected");
+    var graph_selector = $('#graph_selector');
     graph_selector.append(select_option);
-    // $('#graph_selector').multiselect("rebuild");
+    $('#graph_selector').multiselect("rebuild");
     return graph_suit;
 }
 
@@ -146,50 +146,48 @@ function VegaLiteChart(id, name, size) {
     this.name = name;
     this.size = size;
     this.spec = {
-      "data": {
-        "values": [
-        ]
-      },
-      "mark": "point",
-      "encoding": {
-        "x": {
-            "field": "0", "type": "quantitative", "range":"width",
-            "scale": {"zero": false}
+        "data": {
+            "values": []
         },
-        "y": {"field": "1", "type": "quantitative"}
-      }
-    }
+        "mark": "point",
+        "encoding": {
+            "x": {
+                "field": "0", "type": "quantitative", "range": "width",
+                "scale": {"zero": false}
+            },
+            "y": {"field": "1", "type": "quantitative"}
+        }
+    };
     var embedSpec = {
-    mode: "vega-lite",  // Instruct Vega-Embed to use the Vega-Lite compiler
-    spec: this.spec
-    // You can add more vega-embed configuration properties here.
-    // See https://github.com/vega/vega/wiki/Embed-Vega-Web-Components#configuration-propeties for more information.
-  };
+        mode: "vega-lite",  // Instruct Vega-Embed to use the Vega-Lite compiler
+        spec: this.spec
+        // You can add more vega-embed configuration properties here.
+        // See https://github.com/vega/vega/wiki/Embed-Vega-Web-Components#configuration-propeties for more information.
+    };
     this.data = [];
-  // Embed the visualization in the container with id `vis`
-  vg.embed('#' + id, embedSpec, function(error, result) {
-  });
+    // Embed the visualization in the container with id `vis`
+    vg.embed('#' + id, embedSpec, function (error, result) {
+    });
 }
 
-VegaLiteChart.prototype.addPoint = function(ipass, sizes, values) {
+VegaLiteChart.prototype.addPoint = function (ipass, sizes, values) {
     this.data.push([ipass, Number(values[0])]);
     this.spec.data.values = this.data.slice(this.data.length - 20);
     var embedSpec = {
         mode: "vega-lite",  // Instruct Vega-Embed to use the Vega-Lite compiler
         spec: this.spec
     };
-  vg.embed('#' + this.id, embedSpec, function(error, result) {
-    console.log(error, result);
-  });
+    vg.embed('#' + this.id, embedSpec, function (error, result) {
+        console.log(error, result);
+    });
 }
-
 
 
 // Common interface for charts is addPoint( point ) where point is a matrix of conforming shape
 function LineChart(id, name, size) {
     this.id = id;
     this.name = name;
-    this.shape = [1,1];
+    this.shape = [1, 1];
     this.size = size;
     if (!this.size) {
         this.size = 1;
@@ -205,8 +203,7 @@ function LineChart(id, name, size) {
             renderTo: id,
             defaultSeriesType: 'spline',
             alighTicks: false,
-            events: {
-            }
+            events: {}
         },
         title: {
             text: name,
@@ -240,12 +237,12 @@ function LineChart(id, name, size) {
 }
 
 // point is (ipass, point)
-LineChart.prototype.addPoint = function(ipass, sizes, values) {
+LineChart.prototype.addPoint = function (ipass, sizes, values) {
     var series = this.chart.series;
     console.log("values", values);
     for (var i = 0; i < this.size; i++) {
         console.log(series);
-        var shift = series[i].data.length > 40/2;
+        var shift = series[i].data.length > 40 / 2;
         var point = [ipass, +(values[i])];
         series[i].addPoint(point, true, shift);
     }
@@ -277,7 +274,7 @@ function Histogram(id, name) {
     });
 }
 
-Histogram.prototype.addPoint = function(ipass, sizes, values) {
+Histogram.prototype.addPoint = function (ipass, sizes, values) {
     var datas = [];
     for (var i = 0; i < sizes[0]; i += sizes[1]) {
         var p = [Number(values[i]), Number(values[i + 1])];
@@ -315,7 +312,7 @@ function ScatterPlot(id, name) {
     });
 }
 
-ScatterPlot.prototype.addPoint = function(ipass, sizes, values) {
+ScatterPlot.prototype.addPoint = function (ipass, sizes, values) {
     var datas = [];
     for (var i = 0; i < sizes[0]; i += sizes[1]) {
         var p = [Number(values[i]), Number(values[i + 1])];
@@ -342,7 +339,7 @@ function VizManager(root) {
 }
 
 // Send data to server
-VizManager.prototype.sendData = function(data, callback) {
+VizManager.prototype.sendData = function (data, callback) {
     var id = 'request' + this.requestCount;
     var message = {
         id: id,
@@ -358,7 +355,7 @@ VizManager.prototype.sendData = function(data, callback) {
     this.websocket.send(JSON.stringify(message));
 }
 
-VizManager.prototype.handleCallback = function(content) {
+VizManager.prototype.handleCallback = function (content) {
     console.log("callback", content.id, this.ongoingRequest);
     if (content.id in this.ongoingRequest) {
         callback = this.ongoingRequest[content.id];
@@ -371,7 +368,7 @@ VizManager.prototype.handleCallback = function(content) {
     }
 }
 
-VizManager.prototype.connect = function() {
+VizManager.prototype.connect = function () {
     this.endPoint = "ws://" + window.location.host + "/ws";
     if (this.websocket !== null) {
         this.websocket.close()
@@ -393,7 +390,7 @@ VizManager.prototype.connect = function() {
 //        "data" -> data
 //      )
 
-VizManager.prototype.handleDataPoint = function(object) {
+VizManager.prototype.handleDataPoint = function (object) {
     var name = object.name;
     if (!(name in this.allCharts)) {
         var chart = this.createGraph(name, object.type, object.shape);
@@ -401,15 +398,15 @@ VizManager.prototype.handleDataPoint = function(object) {
     }
     var series = this.allCharts[name].addPoint(object.ipass, object.shape, object.data);
 }
-VizManager.prototype.handleParameters = function(object) {
+VizManager.prototype.handleParameters = function (object) {
     console.log("here");
     $("#parameters_body").html("");
     console.log("clean");
     for (var key in object) {
         var item = $('<tr>');
-        var cell1=$('<td>');
+        var cell1 = $('<td>');
         cell1.html(key);
-        var cell2=$('<td>');
+        var cell2 = $('<td>');
         cell2.attr('name', key);
         cell2.html(object[key]);
         item.append(cell1);
@@ -419,8 +416,8 @@ VizManager.prototype.handleParameters = function(object) {
     console.log("filled");
     $('#parameters_table').editableTableWidget();
 
-    var self=this;
-    $('table td').on('change', function(evt, newValue) {
+    var self = this;
+    $('table td').on('change', function (evt, newValue) {
         var key = $(evt.currentTarget).attr('name');
         var name = newValue;
         self.paraMap[key] = name;
@@ -428,7 +425,7 @@ VizManager.prototype.handleParameters = function(object) {
     });
 }
 
-VizManager.prototype.onmessage = function(event) {
+VizManager.prototype.onmessage = function (event) {
     console.log("raw data", event.data);
     if (event.data.length == 0) {
         console.log("empty message");
@@ -456,7 +453,7 @@ VizManager.prototype.onmessage = function(event) {
     }
 }
 
-VizManager.prototype.createGraph = function(name, type, shape) {
+VizManager.prototype.createGraph = function (name, type, shape) {
     var chart;
     if ((name in this.allCharts)) {
         return;
@@ -477,14 +474,16 @@ VizManager.prototype.createGraph = function(name, type, shape) {
     return chart;
 }
 
-VizManager.prototype.onopen = function(event) {
+VizManager.prototype.onopen = function (event) {
     console.log("onopen.");
     // this.websocket.send("");
     this.sendData({methodName: "requestParam"});
 }
-VizManager.prototype.onclose = function(event) {}
-VizManager.prototype.onerror = function(event) {}
-VizManager.prototype.addStat = function(obj, callback, failure) {
+VizManager.prototype.onclose = function (event) {
+}
+VizManager.prototype.onerror = function (event) {
+}
+VizManager.prototype.addStat = function (obj, callback, failure) {
     var data = {
         methodName: "addFunction",
         content: obj
@@ -492,7 +491,7 @@ VizManager.prototype.addStat = function(obj, callback, failure) {
     this.sendData(data, callback);
 }
 
-VizManager.prototype.pauseTraining = function(value, callback) {
+VizManager.prototype.pauseTraining = function (value, callback) {
     var data = {
         methodName: "pauseTraining",
         content: value
@@ -500,32 +499,33 @@ VizManager.prototype.pauseTraining = function(value, callback) {
     this.sendData(data, callback);
 }
 
-VizManager.prototype.modifyParam = function() {
+VizManager.prototype.modifyParam = function () {
     var data = {
         methodName: "modifyParam",
         content: []
     };
     console.log(this.paraMap);
-    for(var key in this.paraMap){
+    for (var key in this.paraMap) {
         var value = this.paraMap[key];
-        data.content.push({'key':key,'value':value});
+        data.content.push({'key': key, 'value': value});
     }
     console.log(data);
     this.sendData(data);
 }
 
-VizManager.prototype.evalCommand = function(code, callback) {
+VizManager.prototype.evalCommand = function (code, callback) {
     var data = {
         methodName: "evaluateCommand",
         content: {
-            "code" : code
+            "code": code
         }
     };
     this.sendData(data, callback)
 }
-VizManager.prototype.getCode = function(name, callback) {
+
+VizManager.prototype.getCode = function (name, callback) {
     callback({
         success: true,
         content: "rand(1,1);"
     });
-}
+};

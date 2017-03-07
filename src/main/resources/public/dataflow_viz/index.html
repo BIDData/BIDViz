@@ -27,7 +27,6 @@
     <link rel="stylesheet" href="css/creative.css" type="text/css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/jquery.terminal/1.0.7/css/jquery.terminal.min.css"
           rel="stylesheet"/>
-    <!--<link rel="stylesheet" href="css/style.css" type="text/css">-->
 
 
     <style>
@@ -80,7 +79,7 @@
 </section>
 
 <!--<section class="row">-->
-    <!--<div class="col-md-offset-2 col-md-8 " id="message"></div>-->
+<!--<div class="col-md-offset-2 col-md-8 " id="message"></div>-->
 <!--</section>-->
 
 <div class="slide_command">
@@ -129,34 +128,56 @@
      aria-labelledby="my_modal_label" aria-hidden="true">
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
-            <div id="codeInput" class="modal-body ">
-                <div class="row">
-                    <div style="margin-bottom: 0px">
-                        <pre style="margin-bottom: 0px"> def f(model: Model, minibatch: Array[Mat]): Mat = {</pre>
-                    </div>
-                    <div style="margin-top: 0px">
-                        <div id="code"></div>
-                    </div>
-                    <div>
-                        <pre>}</pre>
-                    </div>
-                </div>
-                <div class="row alert alert-danger collapse">
-                    Your code contains stupid error!
-                </div>
+            <!--<div class="modal-header" style="padding: 7px;">-->
+            <!--</div>-->
 
-                <div class="row">
-                    <div class=" input-group" style="margin-bottom: 10px;">
-                        <span class="input-group-addon" id="basic-addon1">name</span>
-                        <input id="name" type="text" class="form-control" aria-describedby="basic-addon1"/>
+            <div id="codeInput" class="modal-body ">
+                <ul class="nav nav-tabs" style="margin-bottom: 5px">
+                    <li class="active">
+                        <a href="#addcode_panel" data-toggle="tab" id="addCodeNav">Add Code</a>
+                    </li>
+                    <li>
+                        <a href="#configure_panel" data-toggle="tab" id="configureNav">Configure</a>
+                    </li>
+                    <li>
+                        <a href="#other_panel" data-toggle="tab" id="otherNav">Other</a>
+                    </li>
+                </ul>
+                <div class="tab-content">
+                    <div class="tab-pane active" id="addcode_panel">
+                        <div class="row">
+                            <div style="margin-bottom: 0px">
+                                <pre style="margin-bottom: 0px"> def f(model: Model, minibatch: Array[Mat]): Mat = {</pre>
+                            </div>
+                            <div style="margin-top: 0px">
+                                <div id="code"></div>
+                            </div>
+                            <div>
+                                <pre>}</pre>
+                            </div>
+                        </div>
+                        <div class="row alert alert-danger collapse">
+                            Your code contains stupid error!
+                        </div>
+
+                        <div class="row">
+                            <div class=" input-group" style="margin-bottom: 10px;">
+                                <span class="input-group-addon" id="basic-addon1">name</span>
+                                <input id="name" type="text" class="form-control" aria-describedby="basic-addon1"/>
+                            </div>
+                            <div>
+                                <select id="type" class="selectpicker row" style="margin-bottom: 10px;">
+                                    <option value="LineChart">LineChart</option>
+                                    <option value="ColumnChart">ColumnChart</option>
+                                    <option value="VegaLiteChart">VegaLiteChart</option>
+                                    <option value="ScatterPlot">ScatterPlot</option>
+                                </select>
+                            </div>
+                        </div>
                     </div>
-                    <div>
-                        <select id="type" class="selectpicker row" style="margin-bottom: 10px;">
-                            <option value="LineChart">LineChart</option>
-                            <option value="ColumnChart">ColumnChart</option>
-                            <option value="VegaLiteChart">VegaLiteChart</option>
-                            <option value="ScatterPlot">ScatterPlot</option>
-                        </select>
+
+                    <div class="tab-pane" id="configure_panel">
+                        <button class="btn btn-primary">Test</button>
                     </div>
                 </div>
 
@@ -214,7 +235,6 @@
                     $('#my_modal').modal('hide');
                 }
             }));
-            //         $('.collapse').collapse('show');
         });
 
 
@@ -267,7 +287,6 @@
                 $('.collapse').collapse('hide');
             });
 
-
             $('#graph_selector').multiselect({
                 enableFiltering: true,
                 onChange: function (option, checked, select) {
@@ -280,24 +299,34 @@
                     }
                 }
             });
+
+            $('#addCode').click(function () {
+                viz.getCode('test', function (result) {
+                    if (result.success == false) {
+                        var code = result.content;
+                        window.editor.getSession().setValue(code);
+                    }
+
+                })
+            });
+
+
+            /**
+             * Test Case! Do Not Delete!!
+             *
+             chart = viz.createGraph('Test1', 'LineChart', [1, 1]);
+             chart2 = viz.createGraph('Test2', 'LineChart', [1, 1]);
+             var index = 1;
+             setInterval(function () {
+                chart.addPoint(index++, 0, [Math.random()]);
+                chart2.addPoint(index++, 0, [Math.random()])
+            }, 1000);
+             **/
+
         });
 
-//        window.paraMap={};
-
-//        $('table td').on('change', function(evt, newValue) {
-//            var key=$(evt.currentTarget).attr('name');
-//            var name=newValue;
-//
-//            window.paraMap[key]=name;
-//
-//            // if () {
-//            //     return false; // reject change
-//            // }
-//            return true;
-//        });
-
-
-    });
+    })
+    ;
 </script>
 
 </body>
