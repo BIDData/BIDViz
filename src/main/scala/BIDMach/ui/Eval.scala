@@ -26,8 +26,9 @@ object Eval {
       |import BIDMach.Learner
       |import BIDMach.networks.Net
       |import BIDMach.ui.CodeHelpers._
-      | class %s extends Function2[Model, Array[Mat], Mat] {
-      |   override def apply(model: Model, minibatch: Array[Mat]): Mat = {
+      | class %s extends Function3[Model, Array[Mat], Learner, Mat] {
+      |   var temp: AnyRef = null
+      |   override def apply(model: Model, minibatch: Array[Mat], learner: Learner): Mat = {
       |     %s
       |   }
       | }
@@ -60,9 +61,9 @@ object Eval {
     return instance
   }
 
-  def evaluateCodeToFunction(code: String): (Model, Array[Mat]) => Mat = {
+  def evaluateCodeToFunction(code: String): (Model, Array[Mat], Learner) => Mat = {
     val completeCode = codeTemplate.format("Classname", code, "Classname")
-    return getFunctor[(Model, Array[Mat]) => Mat](completeCode)
+    return getFunctor[(Model, Array[Mat], Learner) => Mat](completeCode)
   }
 
   def evaluateCodeToCommand(code: String): (Learner => AnyRef) = {

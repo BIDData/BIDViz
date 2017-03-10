@@ -1,5 +1,6 @@
 package BIDMach.ui
 
+import BIDMach.Learner
 import BIDMat.{FMat, GMat, Mat}
 import BIDMat.MatFunctions._
 import BIDMat.SciFunctions._
@@ -11,6 +12,21 @@ import BIDMat.SciFunctions._
   */
 
 object CodeHelpers {
+
+  def logLikelihood(learner: Learner):Mat = {
+    val len = learner.reslist.length
+    val istart = if (learner.opts.cumScore == 0) learner.lasti else
+      {if (learner.opts.cumScore == 1) 0 else if (learner.opts.cumScore == 2) len/2 else 3*len/4};
+    var i = 0
+    var sum = 0.0;
+    for (scoremat <- learner.reslist) {
+      if (i >= istart) sum += mean(scoremat(?,0)).v
+      i += 1
+    }
+    var mat = ones(1,1)
+    mat(0, 0) = (sum/(len - istart))
+    mat
+  }
 
   def toHistogram(input: Mat, buckets:Int): Mat = {
     var result = zeros(buckets, 2)

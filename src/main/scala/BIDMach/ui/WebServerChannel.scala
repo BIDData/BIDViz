@@ -196,7 +196,6 @@ class WebServerChannel(val learner: Learner) extends Learner.LearnerObserver {
     var messages = new ListBuffer[Message]
     var currentTime = System.currentTimeMillis()
     prevPass += 1
-    println("time difference", currentTime - lastMessageTimeMillis, AVG_MESSAGE_TIME_MILLIS)
     if ((currentTime - lastMessageTimeMillis)  > AVG_MESSAGE_TIME_MILLIS) {
       if (server.func != null) {
         for ((name, f) <- stats) {
@@ -204,7 +203,7 @@ class WebServerChannel(val learner: Learner) extends Learner.LearnerObserver {
           var result:Mat = null
           var exception:Throwable = null
           try {
-            result = f.funcPointer(model, minibatch)
+            result = f.funcPointer(model, minibatch, learner)
             val (sizes, data) = WebServerChannel.matToArr(result)
             val content = DataPointContent(name, prevPass, sizes, data, f.theType)
             val message = Message("data_point", content)

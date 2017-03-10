@@ -1,6 +1,7 @@
 package BIDMach.ui
 
 
+import BIDMach.Learner
 import BIDMach.models.Model
 import BIDMat.Mat
 import play.api.libs.json.{Json, Writes}
@@ -17,7 +18,7 @@ case class DataPointContent(name: String, ipass: Int,
 case class ParameterContent(content: Map[String, String]) extends MessageContent {}
 
 case class StatFunction(name: String, code: String, size: Int,
-                        theType: String, funcPointer: (Model, Array[Mat]) => Mat) extends MessageContent{}
+                        theType: String, funcPointer: (Model, Array[Mat], Learner) => Mat) extends MessageContent{}
 
 case class CallbackMessage(id: String, success: Boolean, data: String) extends MessageContent {}
 case class ErrorMessage(msg: String) extends MessageContent {}
