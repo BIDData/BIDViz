@@ -156,8 +156,8 @@
                                 <pre>}</pre>
                             </div>
                         </div>
-                        <div class="row alert alert-danger collapse">
-                            Your code contains stupid error!
+                        <div id="compile_error" class="row alert alert-danger collapse">
+                            error
                         </div>
 
                         <div class="row">
@@ -229,6 +229,8 @@
             };
             console.log(window.viz.addStat(obj, function (msg) {
                 if (!msg.success) {
+                    console.log("compile error" , msg);
+                    $('div#compile_error').html(msg.data);
                     $('.collapse').collapse('show');
                 }
                 else {

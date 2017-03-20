@@ -226,8 +226,8 @@ function LineChart(id, name, size) {
                 text: 'Value',
                 margin: 30
             },
-            min: 0,
-            max: 1,
+            // min: 0,
+            // max: 1,
             endOnTick: false,
             startOnTick: false,
         },
