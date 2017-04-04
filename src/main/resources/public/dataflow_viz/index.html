@@ -284,7 +284,6 @@
                 prompt: 'scala> '
             });
 
-
             $('#codeInput').click(function () {
                 $('.collapse').collapse('hide');
             });
@@ -304,7 +303,7 @@
 
             $('#addCode').click(function () {
                 viz.getCode('test', function (result) {
-                    if (result.success == false) {
+                    if (result.success) {
                         var code = result.content;
                         window.editor.getSession().setValue(code);
                     }
@@ -315,7 +314,7 @@
 
             /**
              * Test Case! Do Not Delete!!
-             *
+             */
              chart = viz.createGraph('Test1', 'LineChart', [1, 1]);
              chart2 = viz.createGraph('Test2', 'LineChart', [1, 1]);
              var index = 1;
@@ -323,7 +322,7 @@
                 chart.addPoint(index++, 0, [Math.random()]);
                 chart2.addPoint(index++, 0, [Math.random()])
             }, 1000);
-             **/
+
 
         });
 
