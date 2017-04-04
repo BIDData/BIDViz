@@ -5,6 +5,7 @@ import BIDMach.Learner
 import BIDMach.models.Model
 import BIDMat.Mat
 import play.api.libs.json.{Json, Writes}
+import scala.collection.mutable.{Map => MMap}
 
 /**
   * Created by han on 1/19/17.
@@ -18,10 +19,12 @@ case class DataPointContent(name: String, ipass: Int,
 case class ParameterContent(content: Map[String, String]) extends MessageContent {}
 
 case class StatFunction(name: String, code: String, size: Int,
-                        theType: String, funcPointer: (Model, Array[Mat], Learner) => Mat) extends MessageContent{}
+                        theType: String, funcPointer: (Model, Array[Mat], Learner) => Mat,
+                        uiDefinition: String) extends MessageContent{}
 
 case class CallbackMessage(id: String, success: Boolean, data: String) extends MessageContent {}
 case class ErrorMessage(msg: String) extends MessageContent {}
+
 
 object Message {
   implicit val contentWrite = new Writes[MessageContent] {
@@ -42,6 +45,13 @@ object Message {
         "id" -> id,
         "success" -> success,
         "data" -> data
+      )
+      case StatFunction(name, code, size, theType, func, ui) => Json.obj(
+        "name" -> name,
+        "code" -> code,
+        "size" -> size,
+        "type" -> theType,
+        "ui" -> ui
       )
     }
   }

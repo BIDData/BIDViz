@@ -23,6 +23,8 @@
     <link rel="stylesheet" href="css/magnific-popup.css" type="text/css">
     <link rel="stylesheet" href="css/bootstrap-multiselect.css" type="text/css">
 
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/c3/0.4.11/c3.min.css" type="text/css" />
+
     <!-- Custom CSS -->
     <link rel="stylesheet" href="css/creative.css" type="text/css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/jquery.terminal/1.0.7/css/jquery.terminal.min.css"
@@ -39,12 +41,19 @@
             width: auto;
             font-size: 18px;
         }
+
+        #configuration {
+            height: 400px;
+            width: auto;
+            font-size: 18px;
+        }
     </style>
 
     <script src="//d3js.org/d3.v3.min.js"></script>
     <script src="/js/vega.js"></script>
     <script src="/js/vega-lite.js"></script>
     <script src="/js/vega-embed.js" charset="utf-8"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/c3/0.4.11/c3.min.js"></script>
 
 </head>
 
@@ -188,13 +197,16 @@
                                     <option value="ColumnChart">ColumnChart</option>
                                     <option value="VegaLiteChart">VegaLiteChart</option>
                                     <option value="ScatterPlot">ScatterPlot</option>
+                                    <option value="C3LineChart">C3LineChart</option>
                                 </select>
                             </div>
                         </div>
                     </div>
 
                     <div class="tab-pane" id="configure_panel">
-                        <button class="btn btn-primary">Test</button>
+                        <div class="row">
+                            <div id="configuration"></div>
+                        </div>
                     </div>
                 </div>
 
@@ -229,9 +241,13 @@
     $(document).ready(function () {
         window.viz = new VizManager('graph');
         window.paused = false;
-        window.editor = ace.edit("code");
+        window.editor = ace.edit(document.getElementById("code"));
         window.editor.setTheme("ace/theme/monokai");
         window.editor.getSession().setMode("ace/mode/scala");
+
+        window.configuration = ace.edit(document.getElementById("configuration"));
+        window.configuration.setTheme("ace/theme/monokai");
+        window.configuration.getSession().setMode("ace/mode/scala");
 
 
         $('#submit').click(function (event) {
@@ -252,6 +268,7 @@
                 }
                 else {
                     $('#my_modal').modal('hide');
+                    window.viz.createGraph(name, type, [1,1]);
                 }
             }));
         });
@@ -318,14 +335,21 @@
                 }
             });
 
-            $('#addCode').click(function () {
-                viz.getCode('test', function (result) {
-                    if (result.success) {
-                        var code = result.content;
-                        window.editor.getSession().setValue(code);
+            $(document).on('click', '.chart', function(event) {
+                console.log("event", event);
+                var chartName = $(event.currentTarget).attr("statname")
+                console.log(chartName);
+                var definition = JSON.stringify(viz.allCharts[chartName].definition, null, '\t');
+                window.configuration.setValue(definition, -1);
+                window.viz.getCode(chartName, function(msg) {
+                    if (msg.success) {
+                        window.editor.setValue("", -1);
+                        console.log(msg.content);
+                        var content = JSON.parse(msg.content);
+                        window.editor.setValue(content.code, -1);
+                        $('#my_modal').modal('show');
                     }
-
-                })
+                });
             });
 
 

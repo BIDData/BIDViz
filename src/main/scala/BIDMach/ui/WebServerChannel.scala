@@ -22,6 +22,7 @@ import scala.collection.mutable.ListBuffer
 import scala.io.Source
 import java.io._
 
+import scala.collection.mutable
 import scala.tools.reflect.ToolBoxError
 
 
@@ -29,6 +30,80 @@ import scala.tools.reflect.ToolBoxError
   * Created by han on 11/30/16.
   */
 class WebServerChannel(val learner: Learner) extends Learner.LearnerObserver {
+
+  class StatState(var maxSize: Int) {
+    var stats: MMap[String, StatFunction] = MMap()
+    var datapoints: mutable.Queue[MMap[String, (Mat, Int)]] = mutable.Queue()
+    var currentStart = 0
+    var currentTick = 0
+
+    def load(fromFile: java.io.File) {}
+    def save(toFile: java.io.File): Unit = {
+      val writer = new PrintWriter(toFile)
+      val content = Json.obj(
+        "stats" -> Json.toJson(stats)
+        // "datapoints" -> Json.toJson(datapoints.toSeq)
+      ).toString
+      writer.write(content)
+      writer.close()
+    }
+
+    def getStatByName(name: String) = stats.get(name)
+    def addFunction(name:String, code: String, theType: String): Unit = {
+      val function = Eval.evaluateCodeToFunction(code)
+      stats = stats + (name -> new StatFunction(name, code, 1, theType, function, ""))
+    }
+    def evaluateDatapoint(model: Model, minibatch: Array[Mat], learner: Learner):
+        (MMap[String, (Mat, Int)], List[String]) = {
+
+      var result: MMap[String, (Mat, Int)] = datapoints get currentTick match {
+        case Some(a) => a
+        case None => MMap()
+      }
+      var exceptions: List[String] = List()
+      for ((name, f) <- stats) {
+        println(s"evaluating, $name")
+        try {
+          val newmat = f.funcPointer(model, minibatch, learner)
+          result get name match {
+            case Some((mat, count)) => result += (name -> (mat + newmat, count + 1))
+            case None => result += (name -> (newmat, 1))
+          }
+        } catch {
+          case throwable: Throwable =>
+            stats -= name // get rid of it from the map
+            val message = s"the chart ($name) had a runtime error: (${throwable.toString})"
+            exceptions = exceptions :+ message
+        }
+      }
+
+      // insert the result to the end
+      if (datapoints.size > maxSize) {
+        datapoints.dequeue()
+        currentStart += 1
+      }
+      if (result.size > 0) {
+        datapoints.enqueue(result)
+      }
+      (result, exceptions)
+    }
+
+    def getAggregatedDatapointAndIncrementTick(start: Int, end: Int): MMap[String, Mat] = {
+      var result: MMap[String, Mat] = MMap()
+      datapoints get currentTick match {
+        case Some(datapoint) =>
+          for ((name, mat_count) <- datapoint) {
+            result += (name -> (mat_count._1 / mat_count._2))
+          }
+          currentTick += 1
+        case None =>
+          null
+      }
+      result
+    }
+  }
+
+  var state: StatState = new StatState(10000)
   val AVG_MESSAGE_TIME_MILLIS = 500 // one message to UI per every 200 millis
   var lastMessageTimeMillis:Long = 0 // last time a message is sent in epoch millis
   var stats = MMap[String, StatFunction]()
@@ -36,20 +111,19 @@ class WebServerChannel(val learner: Learner) extends Learner.LearnerObserver {
     ("Learner.Opts", learner.opts)
   )
   var server = new VizWebServer(this)
-  var prevPass = 0
+  var prevUpdate = 0 // last time a data point is send to client
+  var currentTick = 0
   // server.startServer()
-  loadAllMetricsFiles()
-
+  // loadAllMetricsFiles()
+  
   def addNewFunction(requestJson: JsValue): (Boolean, String) = {
     val name = (requestJson \ "name").as[String]
     val code = (requestJson \ "code").as[String]
     val size = 1
     val theType = (requestJson \ "type").as[String]
     try {
-      val function = Eval.evaluateCodeToFunction(code)
       println(code)
-      stats = stats + (name -> new StatFunction(name, code, size, theType, function))
-      saveMetricsFile(name+"$"+size+"$"+theType, code)
+      state.addFunction(name, code, theType)
       return (true, "")
     } catch {
       case e: ToolBoxError => return (false, e.getMessage())
@@ -97,33 +171,36 @@ class WebServerChannel(val learner: Learner) extends Learner.LearnerObserver {
     }
   }
 
+  def getCodeSnippet(name: JsValue): (Boolean, String)= {
+    val n = (name \ "name").as[String]
+    state.getStatByName(n) match {
+      case Some(a) => (true, Json.toJson(a).toString)
+      case None => (false, "")
+    }
+  }
+
   def handleRequest(requestJson: JsValue): CallbackMessage = {
     val methodName = (requestJson \ "methodName").as[String]
     val values = requestJson \ "content"
-    var message: String = null
-    var status: Boolean = false
     println("HAN method name", methodName)
-    methodName match {
+    val (status, message) = methodName match {
       case "addFunction" =>
-        val (s, m) = addNewFunction(values.as[JsValue])
-        message = m
-        status = s
+         addNewFunction(values.as[JsValue])
       case "pauseTraining" =>
-        val (s, m) = pauseTraining(values.as[JsValue])
-        message = m
-        status = s
+         pauseTraining(values.as[JsValue])
       case "modifyParam" =>
-        val (s, m) = modifyParam(values.as[JsValue])
-        message = m
-        status = s
+        modifyParam(values.as[JsValue])
       case "requestParam" =>
-        val (s, m) = requestParam()
-        message = m
-        status = s
+        requestParam()
       case "evaluateCommand" =>
-        val (s, m) = evaluateCommand(values.as[JsValue])
-        message = m
-        status = s
+        evaluateCommand(values.as[JsValue])
+      case "getCode" =>
+        getCodeSnippet(values.as[JsValue])
+      case "saveMetrics" =>
+        var file = new File("testfile.json")
+        state.save(file)
+        (true, "")
+
     }
     return CallbackMessage("", status, message)
   }
@@ -150,9 +227,6 @@ class WebServerChannel(val learner: Learner) extends Learner.LearnerObserver {
     var map = Map(result.toList: _*)
     val message = ParameterContent(map)
     return Message("parameters", message)
-  }
-
-  def pushOutStats() = {
   }
 
   def saveMetricsFile(filename: String, codefile: String) {
@@ -187,40 +261,41 @@ class WebServerChannel(val learner: Learner) extends Learner.LearnerObserver {
         val metricsType = metricsInfo(2)
         val metricsFunction = Eval.evaluateCodeToFunction(metricsCode)
         stats = stats + (metricsName -> new StatFunction(metricsName, metricsCode,
-          metricsSize, metricsType, metricsFunction))
+          metricsSize, metricsType, metricsFunction, ""))
       }
     }
   }
 
   override def notify(ipass: Int, model: Model, minibatch: Array[Mat]): Unit = {
+    // save data point into datas
+    val (_, exceptions) = state.evaluateDatapoint(model, minibatch, learner)
     var messages = new ListBuffer[Message]
-    var currentTime = System.currentTimeMillis()
-    prevPass += 1
-    if ((currentTime - lastMessageTimeMillis)  > AVG_MESSAGE_TIME_MILLIS) {
-      if (server.func != null) {
-        for ((name, f) <- stats) {
-          println(s"evaluating, $name")
-          var result:Mat = null
-          var exception:Throwable = null
-          try {
-            result = f.funcPointer(model, minibatch, learner)
-            val (sizes, data) = WebServerChannel.matToArr(result)
-            val content = DataPointContent(name, prevPass, sizes, data, f.theType)
-            val message = Message("data_point", content)
-            messages += message
-          } catch {
-            case throwable: Throwable =>
-              exception = throwable
-              stats -= name // get rid of it from the map
-              val message = s"the chart ($name) had a runtime error: (${throwable.toString})"
-              val error = ErrorMessage(message)
-              messages += Message("error_message", error)
-          }
-        }
-        server.func(Json.toJson(messages).toString)
-        lastMessageTimeMillis = currentTime
-      }
+    // always send out error messages
+    for (exc <- exceptions) {
+      val error = ErrorMessage(exc)
+      messages += Message("error_message", error)
     }
+
+    // if has passed enough time, fetch a collection of data points and send them out.
+    var currentTime = System.currentTimeMillis()
+    if ((currentTime - lastMessageTimeMillis) > AVG_MESSAGE_TIME_MILLIS &&
+      server.func != null) {
+      val results = state.getAggregatedDatapointAndIncrementTick(prevUpdate, currentTick)
+      for ((name, mat) <- results) {
+        val (sizes, data) = WebServerChannel.matToArr(mat)
+        val content = DataPointContent(name, currentTick, sizes, data, "")
+        val message = Message("data_point", content)
+        messages += message
+      }
+      lastMessageTimeMillis = currentTime
+      prevUpdate = currentTick
+    }
+
+    // send out message only when there is stuff to send
+    if (messages.size > 0) {
+      server.func(Json.toJson(messages).toString)
+    }
+    currentTick += 1
   }
 }
 
