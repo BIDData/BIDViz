@@ -12,7 +12,6 @@ import BIDMat.SciFunctions._
   */
 
 object CodeHelpers {
-
   def logLikelihood(learner: Learner):Mat = {
     val len = learner.reslist.length
     val istart = if (learner.opts.cumScore == 0) learner.lasti else
@@ -41,7 +40,7 @@ object CodeHelpers {
     if (maximun > minimun) {
       var size = (maximun - minimun) / buckets
       var f:FMat = FMat(input(?))
-      for (elm <- 0 until f.size) {
+      for (elm <- 0 until f.nrows) {
         var current = f(elm)
         var position = ((current - minimun) / size).toInt
         if (position >= result.nrows) {
