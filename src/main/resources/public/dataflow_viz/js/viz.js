@@ -256,8 +256,8 @@ function LineChart(id, name, size) {
                 text: 'Value',
                 margin: 30
             },
-            // min: 0,
-            // max: 1,
+            min: 0,
+            max: 1,
             endOnTick: false,
             startOnTick: false,
         },
@@ -277,7 +277,7 @@ LineChart.prototype.addPoint = function (ipass, sizes, values) {
         var point = [ipass, +(values[i])];
         series[i].addPoint(point, true, shift);
     }
-}
+};
 
 LineChart.prototype.update = function( new_def) {
     this.definition = new_def;
@@ -412,7 +412,7 @@ VizManager.prototype.handleCallback = function (content) {
 VizManager.prototype.connect = function () {
     this.endPoint = "ws://" + window.location.host + "/ws";
     if (this.websocket !== null) {
-        this.websocket.close()
+        this.websocket.close();
     }
     this.websocket = new WebSocket(endPoint);
     this.websocket.onmessage = this.onmessage.bind(this);
@@ -423,13 +423,6 @@ VizManager.prototype.connect = function () {
     return true;
 }
 
-
-//        Json.obj(
-//          "name" -> name,
-//        "ipass" -> ipass,
-//        "shape" -> shape,
-//        "data" -> data
-//      )
 
 VizManager.prototype.handleDataPoint = function (object) {
     var name = object.name;
@@ -466,7 +459,7 @@ VizManager.prototype.handleParameters = function (object) {
         self.paraMap[key] = name;
         return true;
     });
-}
+};
 
 VizManager.prototype.onmessage = function (event) {
     console.log("raw data", event.data);

@@ -64,27 +64,44 @@
         <div class="navbar-header">
             <a class="navbar-brand page-scroll" href="#page-top">BIDMach Visualization</a>
         </div>
+
+        <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+            <ul class="nav navbar-nav navbar-right">
+                <li>
+                    <a class="page-scroll" id="pause">Pause</a>
+                </li>
+                <li>
+                    <a class="page-scroll" id="setValue">Set Value</a>
+                </li>
+                <li>
+                    <a class="page-scroll" data-toggle="modal" data-target="#my_modal" id="addCode">Add Code</a>
+                </li>
+                <li>
+                    <a class="page-scroll"  data-toggle="modal" data-target="#my_modal2" id="params">Parameters</a>
+                </li>
+
+            </ul>
+        </div>
+
     </div>
 </nav>
-
 
 <section class="row" style="padding-top:60px; padding-bottom:20px">
     <div class="col-md-offset-1 col-md-2">
         <select id="graph_selector" multiple="multiple">
         </select>
-
     </div>
 
-    <div class="col-md-offset-3 col-md-6">
-        <button class="btn btn-default btn-primary" style="margin-right: 10px" id="pause">Pause</button>
-        <button class="btn btn-default btn-primary" style="margin-right: 10px" id="setValue">Set Value</button>
-        <button class="btn btn-default btn-primary" type="button" style="margin-right: 10px"
-                data-toggle="modal" data-target="#my_modal" id="addCode">Add Code
-        </button>
-        <button class="btn btn-default btn-primary" type="button" style="margin-right: 10px"
-                data-toggle="modal" data-target="#my_modal2" id="params">Show Params
-        </button>
-    </div>
+    <!--<div class="col-md-offset-3 col-md-6">-->
+        <!--<button class="btn btn-default btn-primary" style="margin-right: 10px" id="pause">Pause</button>-->
+        <!--<button class="btn btn-default btn-primary" style="margin-right: 10px" id="setValue">Set Value</button>-->
+        <!--<button class="btn btn-default btn-primary" type="button" style="margin-right: 10px"-->
+                <!--data-toggle="modal" data-target="#my_modal" id="addCode">Add Code-->
+        <!--</button>-->
+        <!--<button class="btn btn-default btn-primary" type="button" style="margin-right: 10px"-->
+                <!--data-toggle="modal" data-target="#my_modal2" id="params">Show Params-->
+        <!--</button>-->
+    <!--</div>-->
 </section>
 
 <!--<section class="row">-->
@@ -307,7 +324,6 @@
                 prompt: 'scala> '
             });
 
-
             $('#codeInput').click(function () {
                 $('.collapse').collapse('hide');
             });
@@ -341,7 +357,16 @@
                         window.editor.setValue(content, -1);
                         $('#my_modal').modal('show');
                         window.editor.resize();
-			window.configuration.resize();
+                        window.configuration.resize();
+                    }
+                });
+            });
+                        
+            $('#addCode').click(function () {
+                viz.getCode('test', function (result) {
+                    if (result.success) {
+                        var code = result.content;
+                        window.editor.getSession().setValue(code);
                     }
                 });
             });
@@ -349,7 +374,7 @@
 
             /**
              * Test Case! Do Not Delete!!
-             *
+             */
              chart = viz.createGraph('Test1', 'LineChart', [1, 1]);
              chart2 = viz.createGraph('Test2', 'LineChart', [1, 1]);
              var index = 1;
@@ -357,7 +382,7 @@
                 chart.addPoint(index++, 0, [Math.random()]);
                 chart2.addPoint(index++, 0, [Math.random()])
             }, 1000);
-             **/
+
 
         });
 
