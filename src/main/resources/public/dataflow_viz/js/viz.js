@@ -165,7 +165,6 @@ C3LineChart.prototype.addPoint = function (ipass, sizes, values) {
     this.definition.data.columns[1].push(values[0]);
     this.chart.load(this.definition.data);
 }
-C3LineChart.prototype.update = function (ipass, sizes, values) {}
 
 function VegaLiteChart(id, name, size) {
     this.id = id;
@@ -206,10 +205,6 @@ VegaLiteChart.prototype.addPoint = function (ipass, sizes, values) {
     vg.embed('#' + this.id, embedSpec, function (error, result) {
         console.log(error, result);
     });
-}
-
-VegaLiteChart.prototype.update = function(newconfig) {
-    this.definition = newconfig;
 }
 
 
@@ -279,11 +274,6 @@ LineChart.prototype.addPoint = function (ipass, sizes, values) {
     }
 };
 
-LineChart.prototype.update = function( new_def) {
-    this.definition = new_def;
-    this.chart.update(new_def, true);
-}
-
 function Histogram(id, name) {
     this.id = id;
     this.name = name;
@@ -320,8 +310,6 @@ Histogram.prototype.addPoint = function (ipass, sizes, values) {
     console.log("calling setData", datas);
     this.chart.series[0].setData(datas, true, true, true);
 }
-
-Histogram.prototype.update = function() {}
 
 function ScatterPlot(id, name) {
     this.id = id;
@@ -361,7 +349,6 @@ ScatterPlot.prototype.addPoint = function (ipass, sizes, values) {
     console.log("calling setData", datas);
     this.chart.series[0].setData(datas, true, true, true);
 }
-ScatterPlot.prototype.update = function() {}
 
 
 function VizManager(root) {
@@ -427,12 +414,12 @@ VizManager.prototype.connect = function () {
 VizManager.prototype.handleDataPoint = function (object) {
     var name = object.name;
     if (!(name in this.allCharts)) {
-        // return;
-        var chart = this.createGraph(name, object.type, object.shape);
+        return;
+        // var chart = this.createGraph(name, object.type, object.shape);
         this.allCharts[name] = chart;
     }
     var series = this.allCharts[name].addPoint(object.ipass, object.shape, object.data);
-}
+};
 
 VizManager.prototype.handleParameters = function (object) {
     console.log("here");
@@ -579,7 +566,16 @@ VizManager.prototype.getCode = function (name, callback) {
 
 VizManager.prototype.createAllGraph = function() {
     var data = {
-        methodName: "getCode",
+        methodName: "getCode"
+    };
+    this.sendData(data, function(result) {
+        console.log(result);
+    }.bind(this));
+}
+
+VizManager.prototype.saveMetrics = function() {
+    var data = {
+        methodName: "saveMetrics"
     };
     this.sendData(data, function(result) {
         console.log(result);

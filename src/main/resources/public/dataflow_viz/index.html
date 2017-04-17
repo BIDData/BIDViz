@@ -260,12 +260,6 @@
                 code: code,
                 type: type
             };
-
-            if (name in window.viz.allCharts) {
-               var content = configuration.getValue();
-               var config = JSON.parse(content);
-               window.viz.allCharts[name].update(config);
-            }
             console.log(window.viz.addStat(obj, function (msg) {
                 if (!msg.success) {
                     console.log("compile error" , msg);
@@ -274,7 +268,7 @@
                 }
                 else {
                     $('#my_modal').modal('hide');
-                    // window.viz.createGraph(name, type, [1,1]);
+                    window.viz.createGraph(name, type, [1,1]);
                 }
             }));
         });
@@ -290,9 +284,7 @@
 
         $('#setValue').click(function (event) {
             event.preventDefault();
-            window.viz.modifyParam('pstep', '0.02', function (event) {
-                console.log(event);
-            });
+            viz.saveMetrics();
         });
 
         $('#parameters_table').editableTableWidget();
@@ -347,26 +339,13 @@
                 console.log(chartName);
                 var definition = JSON.stringify(viz.allCharts[chartName].definition, null, '\t');
                 window.configuration.setValue(definition, -1);
-                window.configuration.resize();
                 window.viz.getCode(chartName, function(msg) {
                     if (msg.success) {
                         window.editor.setValue("", -1);
                         console.log(msg.content);
-                        // var content = JSON.parse(msg.content);
-                        var content = msg.content;
-                        window.editor.setValue(content, -1);
+                        var content = JSON.parse(msg.content);
+                        window.editor.setValue(content.code, -1);
                         $('#my_modal').modal('show');
-                        window.editor.resize();
-                        window.configuration.resize();
-                    }
-                });
-            });
-                        
-            $('#addCode').click(function () {
-                viz.getCode('test', function (result) {
-                    if (result.success) {
-                        var code = result.content;
-                        window.editor.getSession().setValue(code);
                     }
                 });
             });
@@ -374,7 +353,6 @@
 
             /**
              * Test Case! Do Not Delete!!
-             */
              chart = viz.createGraph('Test1', 'LineChart', [1, 1]);
              chart2 = viz.createGraph('Test2', 'LineChart', [1, 1]);
              var index = 1;
@@ -382,6 +360,7 @@
                 chart.addPoint(index++, 0, [Math.random()]);
                 chart2.addPoint(index++, 0, [Math.random()])
             }, 1000);
+             */
 
 
         });

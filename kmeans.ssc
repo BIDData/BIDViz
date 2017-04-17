@@ -7,7 +7,6 @@ import BIDMach.datasources._
 import BIDMach.datasinks._
 import BIDMach.updaters._
 import BIDMach._
-import BIDMach.ui.NetSink
 import BIDMach.ui.WebServerChannel
 
 
