@@ -132,6 +132,11 @@ function postData(data, callback, failure) {
 
 function createGraphSuit(id) {
     var graph_suit = $("<div></div>").addClass("graph_suit").addClass("col-md-6").attr("id", id + '_suit').css("width", "50%").css("height", "450px").css("margin-bottom", "60px");
+    var loadCode = $('<button>');
+    loadCode.html("Modify");
+    loadCode.addClass('chart');
+    loadCode.attr("statname", id);
+    graph_suit.append(loadCode);
     var graph = $("<div></div>").attr("id", id).css("margin", "0 auto");
     graph_suit.append(graph);
     var select_option = $("<option></option>").val(id).text(id).attr("selected", "selected");
@@ -141,11 +146,32 @@ function createGraphSuit(id) {
     return graph_suit;
 }
 
+
+function C3LineChart(id, name, size) {
+    this.name = name;
+    this.id = id;
+    this.definition = {
+        bindto: '#' + this.id,
+        data: {
+            x: 'x',
+            columns:[ ['x'], ['y']]
+        }
+    };
+    this.chart = c3.generate(this.definition);
+}
+
+C3LineChart.prototype.addPoint = function (ipass, sizes, values) {
+    this.definition.data.columns[0].push(ipass);
+    this.definition.data.columns[1].push(values[0]);
+    this.chart.load(this.definition.data);
+}
+C3LineChart.prototype.update = function (ipass, sizes, values) {}
+
 function VegaLiteChart(id, name, size) {
     this.id = id;
     this.name = name;
     this.size = size;
-    this.spec = {
+    this.definition = {
         "data": {
             "values": []
         },
@@ -160,7 +186,7 @@ function VegaLiteChart(id, name, size) {
     };
     var embedSpec = {
         mode: "vega-lite",  // Instruct Vega-Embed to use the Vega-Lite compiler
-        spec: this.spec
+        spec: this.definition
         // You can add more vega-embed configuration properties here.
         // See https://github.com/vega/vega/wiki/Embed-Vega-Web-Components#configuration-propeties for more information.
     };
@@ -172,14 +198,18 @@ function VegaLiteChart(id, name, size) {
 
 VegaLiteChart.prototype.addPoint = function (ipass, sizes, values) {
     this.data.push([ipass, Number(values[0])]);
-    this.spec.data.values = this.data.slice(this.data.length - 20);
+    this.definition.data.values = this.data.slice(this.data.length - 20);
     var embedSpec = {
         mode: "vega-lite",  // Instruct Vega-Embed to use the Vega-Lite compiler
-        spec: this.spec
+        spec: this.definition
     };
     vg.embed('#' + this.id, embedSpec, function (error, result) {
         console.log(error, result);
     });
+}
+
+VegaLiteChart.prototype.update = function(newconfig) {
+    this.definition = newconfig;
 }
 
 
@@ -198,7 +228,7 @@ function LineChart(id, name, size) {
             data: []
         });
     }
-    this.chart = new Highcharts.Chart({
+    this.definition = {
         chart: {
             renderTo: id,
             defaultSeriesType: 'spline',
@@ -232,7 +262,8 @@ function LineChart(id, name, size) {
             startOnTick: false,
         },
         series: series
-    });
+    };
+    this.chart = new Highcharts.Chart(this.definition);
     console.log("here", series.length);
 }
 
@@ -248,10 +279,15 @@ LineChart.prototype.addPoint = function (ipass, sizes, values) {
     }
 }
 
+LineChart.prototype.update = function( new_def) {
+    this.definition = new_def;
+    this.chart.update(new_def, true);
+}
+
 function Histogram(id, name) {
     this.id = id;
     this.name = name;
-    this.chart = new Highcharts.Chart({
+    this.definition = {
         chart: {
             renderTo: id,
             type: 'column',
@@ -271,7 +307,8 @@ function Histogram(id, name) {
             groupPadding: 0,
             pointPlacement: 'between'
         }]
-    });
+    };
+    this.chart = new Highcharts.Chart(this.definition);
 }
 
 Histogram.prototype.addPoint = function (ipass, sizes, values) {
@@ -284,10 +321,12 @@ Histogram.prototype.addPoint = function (ipass, sizes, values) {
     this.chart.series[0].setData(datas, true, true, true);
 }
 
+Histogram.prototype.update = function() {}
+
 function ScatterPlot(id, name) {
     this.id = id;
     this.name = name;
-    this.chart = new Highcharts.Chart({
+    this.definition = {
         chart: {
             renderTo: id,
             type: 'scatter',
@@ -309,7 +348,8 @@ function ScatterPlot(id, name) {
             groupPadding: 0,
             pointPlacement: 'between'
         }]
-    });
+    };
+    this.chart = new Highcharts.Chart(this.definition);
 }
 
 ScatterPlot.prototype.addPoint = function (ipass, sizes, values) {
@@ -321,6 +361,7 @@ ScatterPlot.prototype.addPoint = function (ipass, sizes, values) {
     console.log("calling setData", datas);
     this.chart.series[0].setData(datas, true, true, true);
 }
+ScatterPlot.prototype.update = function() {}
 
 
 function VizManager(root) {
@@ -393,11 +434,13 @@ VizManager.prototype.connect = function () {
 VizManager.prototype.handleDataPoint = function (object) {
     var name = object.name;
     if (!(name in this.allCharts)) {
+        // return;
         var chart = this.createGraph(name, object.type, object.shape);
         this.allCharts[name] = chart;
     }
     var series = this.allCharts[name].addPoint(object.ipass, object.shape, object.data);
 }
+
 VizManager.prototype.handleParameters = function (object) {
     console.log("here");
     $("#parameters_body").html("");
@@ -469,6 +512,8 @@ VizManager.prototype.createGraph = function (name, type, shape) {
         chart = new VegaLiteChart(name, name);
     } else if (type == 'ScatterPlot') {
         chart = new ScatterPlot(name, name);
+    } else if (type == 'C3LineChart') {
+        chart = new C3LineChart(name, name);
     }
     this.allCharts[name] = chart;
     return chart;
@@ -520,12 +565,30 @@ VizManager.prototype.evalCommand = function (code, callback) {
             "code": code
         }
     };
-    this.sendData(data, callback)
+    this.sendData(data, callback);
 }
 
 VizManager.prototype.getCode = function (name, callback) {
-    callback({
-        success: true,
-        content: "rand(1,1);"
+    var data = {
+        methodName: "getCode",
+        content: {
+            'name': name
+        }
+    };
+    this.sendData(data, function(result) {
+        console.log("code", result);
+        callback({
+            success: result.success,
+            content: result.data
+        });
     });
 };
+
+VizManager.prototype.createAllGraph = function() {
+    var data = {
+        methodName: "getCode",
+    };
+    this.sendData(data, function(result) {
+        console.log(result);
+    }.bind(this));
+}

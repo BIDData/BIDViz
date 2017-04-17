@@ -29,7 +29,7 @@ import scala.tools.reflect.ToolBoxError
   * Created by han on 11/30/16.
   */
 class WebServerChannel(val learner: Learner) extends Learner.LearnerObserver {
-  val AVG_MESSAGE_TIME_MILLIS = 500 // one message to UI per every 200 millis
+  val AVG_MESSAGE_TIME_MILLIS = 1500 // one message to UI per every 200 millis
   var lastMessageTimeMillis:Long = 0 // last time a message is sent in epoch millis
   var stats = MMap[String, StatFunction]()
   val interestingStats = List(
@@ -124,8 +124,20 @@ class WebServerChannel(val learner: Learner) extends Learner.LearnerObserver {
         val (s, m) = evaluateCommand(values.as[JsValue])
         message = m
         status = s
+      case "getCode" =>
+        val (s, m) = getCodeSnippet(values.as[JsValue])
+        message = m
+        status = s
     }
     return CallbackMessage("", status, message)
+  }
+
+  def getCodeSnippet(name: JsValue): (Boolean, String)= {
+    val n = (name \ "name").as[String]
+    stats.get(n) match {
+      case Some(a) => (true, a.code)
+      case None => (false, "")
+    }
   }
 
   def computeStatsToMessage(name:String, x: AnyRef): Message = {
