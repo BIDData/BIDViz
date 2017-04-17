@@ -4,7 +4,7 @@ import scala.collection.mutable.ListBuffer
 import scala.util.matching.Regex
 import java.util.Calendar//to get the timestamp
 import java.text.SimpleDateFormat
-import BIDMat.{CMat,CSMat,DMat,Dict,FMat,FND,GMat,GDMat,GIMat,GLMat,GSMat,GSDMat,GND,HMat,IDict,Image,IMat,LMat,Mat,SMat,SBMat,SDMat,TMat}
+import BIDMat.{CMat,CSMat,DMat,Dict,FMat,GMat,GDMat,GIMat,GLMat,GSMat,GSDMat,HMat,IDict,Image,IMat,LMat,Mat,SMat,SBMat,SDMat,TMat}
 import BIDMat.MatFunctions._
 import BIDMat.SciFunctions._
 import BIDMach.datasources._

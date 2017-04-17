@@ -566,7 +566,16 @@ VizManager.prototype.getCode = function (name, callback) {
 
 VizManager.prototype.createAllGraph = function() {
     var data = {
-        methodName: "getCode",
+        methodName: "getCode"
+    };
+    this.sendData(data, function(result) {
+        console.log(result);
+    }.bind(this));
+}
+
+VizManager.prototype.saveMetrics = function() {
+    var data = {
+        methodName: "saveMetrics"
     };
     this.sendData(data, function(result) {
         console.log(result);

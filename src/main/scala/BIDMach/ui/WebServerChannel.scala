@@ -1,7 +1,6 @@
 package BIDMach.ui
 
 import BIDMach.ui.Message.{contentWrite, messageWrite}
-import BIDMach.ui.Message
 import BIDMach.Learner
 import BIDMat.Mat
 import BIDMat.TMat
@@ -13,8 +12,8 @@ import BIDMat.MatFunctions._
 import BIDMat.SciFunctions._
 import BIDMach.Learner
 import BIDMach.models.Model
-import play.api.libs.json.{JsArray, JsObject, JsValue, Json}
 import play.api.routing.sird
+import play.api.libs.json._
 
 import scala.reflect.runtime.universe._
 import scala.collection.mutable.{Map => MMap}
@@ -41,11 +40,13 @@ class WebServerChannel(val learner: Learner) extends Learner.LearnerObserver {
     def save(toFile: java.io.File): Unit = {
       val writer = new PrintWriter(toFile)
       val content = Json.obj(
-        "stats" -> Json.toJson(stats)
-        // "datapoints" -> Json.toJson(datapoints.toSeq)
+        "stats" -> Json.toJson(stats.toMap)
+        // "datapoints" -> Json.toJson(
       ).toString
+
       writer.write(content)
       writer.close()
+      println("I am here")
     }
 
     def getStatByName(name: String) = stats.get(name)
@@ -200,6 +201,13 @@ class WebServerChannel(val learner: Learner) extends Learner.LearnerObserver {
         var file = new File("testfile.json")
         state.save(file)
         (true, "")
+      /*
+      case "getDataForTick" =>
+        var start = (value.as[JsValue] \ "start").as[Int]
+        var end = (value.as[JsValue] \ "start").as[Int]
+        val result = state.getAggregatedDatapointAndIncrementTick(start, end)
+        (true, Json.toJson(result.toMap).toString)
+      */
 
     }
     return CallbackMessage("", status, message)

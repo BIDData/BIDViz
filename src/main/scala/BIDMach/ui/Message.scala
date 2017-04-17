@@ -5,7 +5,9 @@ import BIDMach.Learner
 import BIDMach.models.Model
 import BIDMat.Mat
 import play.api.libs.json.{Json, Writes}
+
 import scala.collection.mutable.{Map => MMap}
+import scala.reflect.ClassTag
 
 /**
   * Created by han on 1/19/17.
@@ -56,10 +58,10 @@ object Message {
     }
   }
 
-  implicit  val messageWrite = new Writes[Message]  {
+  implicit val messageWrite = new Writes[Message] {
     def writes(content: Message) = Json.obj(
-      "msgType"-> content.msgType,
-      "content"-> Json.toJson(content.content)
+      "msgType" -> content.msgType,
+      "content" -> Json.toJson(content.content)
     )
   }
 
