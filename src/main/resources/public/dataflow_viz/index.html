@@ -203,11 +203,11 @@
                             </div>
                             <div>
                                 <select id="type" class="selectpicker row" style="margin-bottom: 10px;">
-                                    <option value="LineChart">LineChart</option>
+                                  <!--  <option value="LineChart">LineChart</option>
                                     <option value="ColumnChart">ColumnChart</option>
                                     <option value="VegaLiteChart">VegaLiteChart</option>
                                     <option value="ScatterPlot">ScatterPlot</option>
-                                    <option value="C3LineChart">C3LineChart</option>
+                                    <option value="C3LineChart">C3LineChart</option> -->
                                 </select>
                             </div>
                         </div>
@@ -231,6 +231,7 @@
 
 
 <script src="js/websocket_client.js"></script>
+<script src="js/viz/base.js"></script>
 <script src="js/viz/highcharts.js"></script>
 <script src="js/viz/c3charts.js"></script>
 <script src="js/viz/vegaCharts.js"></script>
@@ -248,7 +249,11 @@
         window.configuration = ace.edit(document.getElementById("configuration"));
         window.configuration.setTheme("ace/theme/monokai");
         window.configuration.getSession().setMode("ace/mode/scala");
-
+        
+        d3.select("#type").selectAll("option").data(Object.keys(dictOfVizClass)).enter()
+            .append("option")
+            .attr("value",function(d){return d})
+            .html(function(d){return d})
 
         $('#submit').click(function (event) {
             event.preventDefault();

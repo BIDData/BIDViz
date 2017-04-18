@@ -163,6 +163,8 @@ function LineChart(id, name, size) {
     console.log("here", series.length);
 }
 
+LineChart.prototype = new BaseViz("LineChart",LineChart)
+
 // point is (ipass, point)
 LineChart.prototype.addPoint = function (ipass, sizes, values) {
     var series = this.chart.series;
@@ -202,6 +204,8 @@ function Histogram(id, name) {
     this.chart = new Highcharts.Chart(this.definition);
 }
 
+Histogram.prototype = new BaseViz("Histogram",Histogram)
+    
 Histogram.prototype.addPoint = function (ipass, sizes, values) {
     var datas = [];
     for (var i = 0; i < sizes[0]; i += sizes[1]) {
@@ -240,6 +244,8 @@ function ScatterPlot(id, name) {
     };
     this.chart = new Highcharts.Chart(this.definition);
 }
+
+ScatterPlot.prototype = new BaseViz("ScatterPlot",ScatterPlot)
 
 ScatterPlot.prototype.addPoint = function (ipass, sizes, values) {
     var datas = [];

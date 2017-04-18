@@ -11,6 +11,8 @@ function C3LineChart(id, name, size) {
     this.chart = c3.generate(this.definition);
 }
 
+C3LineChart.prototype = new BaseViz("C3LineChart",C3LineChart)
+
 C3LineChart.prototype.addPoint = function (ipass, sizes, values) {
     console.log(typeof values[0])
     this.definition.data.columns[0].push(ipass);

@@ -170,7 +170,7 @@
         }
         var graphSuit = createGraphSuit(name);
         $('#' + this.root).append(graphSuit);
-        if (type === 'LineChart') {
+        /*if (type === 'LineChart') {
             var size = shape[0] * shape[1];
             chart = new LineChart(name, name, size);
         } else if (type === 'ColumnChart') {
@@ -181,7 +181,9 @@
             chart = new ScatterPlot(name, name);
         } else if (type == 'C3LineChart') {
             chart = new C3LineChart(name, name);
-        }
+        }*/
+        var size = shape[0] * shape[1];
+        chart = new dictOfVizClass[type](name,name,size)
         this.allCharts[name] = chart;
         return chart;
     }

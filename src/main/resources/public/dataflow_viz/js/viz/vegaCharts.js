@@ -27,6 +27,8 @@ function VegaLiteChart(id, name, size) {
     });
 }
 
+VegaLiteChart.prototype = new BaseViz("VegaLiteChart",VegaLiteChart)
+
 VegaLiteChart.prototype.addPoint = function (ipass, sizes, values) {
     this.data.push([ipass, Number(values[0])]);
     this.definition.data.values = this.data.slice(this.data.length - 20);
@@ -38,3 +40,5 @@ VegaLiteChart.prototype.addPoint = function (ipass, sizes, values) {
         console.log(error, result);
     });
 }
+
+
