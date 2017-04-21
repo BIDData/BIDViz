@@ -51,6 +51,7 @@
 
         this.ongoingRequest = {}
         this.requestCount = 0
+        this.modelGraph = null
     }
 
     // Send data to server
@@ -166,6 +167,7 @@
     VizManager.prototype.createGraph = function (name, type, shape) {
         var chart;
         if ((name in this.allCharts)) {
+            alert("A visualization called " + name +" already existed")
             return;
         }
         var graphSuit = createGraphSuit(name);
@@ -192,11 +194,15 @@
         console.log("onopen.");
         // this.websocket.send("");
         this.sendData({methodName: "requestParam"});
-    }
+//        this.createModelGraph("modelgraph")
+    }    
+    
     VizManager.prototype.onclose = function (event) {
     }
+    
     VizManager.prototype.onerror = function (event) {
     }
+    
     VizManager.prototype.addStat = function (obj, callback, failure) {
         var data = {
             methodName: "addFunction",
@@ -269,6 +275,19 @@
         this.sendData(data, function(result) {
             console.log(result);
         }.bind(this));
+    }
+    
+    VizManager.prototype.createModelGraph = function(divId) {
+        console.log(this.modelGraph)
+        if (this.modelGraph != null) return
+        var data = {
+            methodName: "getModelGraph"
+        }
+        this.sendData(data,(function(result){
+            console.log("model",result)
+            if (result.success)
+                this.modelGraph = new ModelGraph(divId,result.data)
+        }).bind(this))
     }
     
     exports.VizManager = VizManager
