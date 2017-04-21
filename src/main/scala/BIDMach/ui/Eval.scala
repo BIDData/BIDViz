@@ -17,7 +17,7 @@ object Eval {
   val codeTemplate =
     """
       |import BIDMach.models.Model
-      |import BIDMat.Mat
+      |import BIDMat.{Mat,FMat,GMat}
       |import BIDMat.TMat
       |import BIDMat.MatFunctions._
       |import BIDMat.SciFunctions._
@@ -41,6 +41,7 @@ object Eval {
       |import BIDMat.Mat
       |import BIDMat.MatFunctions._
       |import BIDMach.Learner
+      |import BIDMach.ui.CodeHelpers._
       | class %s extends Function[Learner, Any] {
       |   override def apply(learner: Learner): Any = {
       |     %s

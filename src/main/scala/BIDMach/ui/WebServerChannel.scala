@@ -12,6 +12,7 @@ import BIDMat.MatFunctions._
 import BIDMat.SciFunctions._
 import BIDMach.Learner
 import BIDMach.models.Model
+import BIDMach.networks.Net
 import play.api.routing.sird
 import play.api.libs.json._
 
@@ -105,7 +106,7 @@ class WebServerChannel(val learner: Learner) extends Learner.LearnerObserver {
   }
 
   var state: StatState = new StatState(10000)
-  val AVG_MESSAGE_TIME_MILLIS = 500 // one message to UI per every 200 millis
+  var AVG_MESSAGE_TIME_MILLIS = 1000 // one message to UI per every 200 millis
   var lastMessageTimeMillis:Long = 0 // last time a message is sent in epoch millis
   var stats = MMap[String, StatFunction]()
   val interestingStats = List(
@@ -179,7 +180,16 @@ class WebServerChannel(val learner: Learner) extends Learner.LearnerObserver {
       case None => (false, "")
     }
   }
-
+    
+  def getModelGraph() = 
+      learner.model match {
+          case m:Net =>
+              CodeHelpers.getModelGraph(learner)
+              //(true,Json.toJson(m.layers.map(_.getClass.getSimpleName)).toString)
+          case _ =>
+              (true,"[\"layer1\",\"layer2\"]")
+  }
+  
   def handleRequest(requestJson: JsValue): CallbackMessage = {
     val methodName = (requestJson \ "methodName").as[String]
     val values = requestJson \ "content"
@@ -201,6 +211,9 @@ class WebServerChannel(val learner: Learner) extends Learner.LearnerObserver {
         var file = new File("testfile.json")
         state.save(file)
         (true, "")
+      case "getModelGraph" =>
+        getModelGraph()
+
       /*
       case "getDataForTick" =>
         var start = (value.as[JsValue] \ "start").as[Int]
