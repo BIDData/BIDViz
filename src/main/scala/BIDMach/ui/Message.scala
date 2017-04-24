@@ -16,7 +16,7 @@ trait MessageContent {}
 case class Message(msgType: String, content: MessageContent){}
 
 case class DataPointContent(name: String, ipass: Int,
-                            shape: Seq[Int], data: Seq[String], theType: String) extends MessageContent {}
+                            shape: Seq[Int], data: Seq[Float], theType: String) extends MessageContent {}
 
 case class ParameterContent(content: Map[String, String]) extends MessageContent {}
 

@@ -2,9 +2,7 @@ package BIDMach.ui
 
 import BIDMach.ui.Message.{contentWrite, messageWrite}
 import BIDMach.Learner
-import BIDMat.Mat
-import BIDMat.TMat
-import BIDMat.IMat
+import BIDMat.{Mat,FMat,GMat,TMat,IMat}
 import BIDMat.SciFunctions.variance
 import BIDMat.MatFunctions.?
 import BIDMat.MatFunctions.ones
@@ -323,14 +321,16 @@ class WebServerChannel(val learner: Learner) extends Learner.LearnerObserver {
 object WebServerChannel {
   val metricLocation = "src/main/resources/metrics/"
 
-  def matToArr(m: Mat): (Seq[Int], Seq[String]) = {
+  def matToArr(m: Mat): (Seq[Int], Seq[Float]) = {
     if (m == null) {
       return (Seq(0, 0), Seq())
     }
     val row = m.nrows
     val col = m.ncols
-    val result = (for (i <- 0 until row;
-                       j <- 0 until col) yield s"${m(i, IMat(j))}")
+//    val result = (for (i <- 0 until row;
+//                       j <- 0 until col) yield s"${m(i, IMat(j))}")
+    val result = FMat(m).data
+    println(result.take(10).toList)
     (Seq(row, col), result)
   }
 

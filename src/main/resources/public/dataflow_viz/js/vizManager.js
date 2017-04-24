@@ -137,7 +137,7 @@
     };
 
     VizManager.prototype.onmessage = function (event) {
-        console.log("raw data", event.data);
+        //console.log("raw data", event.data);
         if (event.data.length == 0) {
             console.log("empty message");
             return;
