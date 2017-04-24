@@ -19,6 +19,7 @@ import scala.collection.mutable.{Map => MMap}
 import scala.collection.mutable.ListBuffer
 import scala.io.Source
 import java.io._
+import java.util.Scanner
 
 import scala.collection.mutable
 import scala.tools.reflect.ToolBoxError
@@ -35,7 +36,22 @@ class WebServerChannel(val learner: Learner) extends Learner.LearnerObserver {
     var currentStart = 0
     var currentTick = 0
 
-    def load(fromFile: java.io.File) {}
+    def load(fromFile: java.io.File): Unit = {
+      val stringContent = new Scanner(
+        new File("filename")).useDelimiter("\\Z").next()
+      val content = Json.parse(stringContent).as[Map[String, JsValue]]
+      for ((key, value) <- content) {
+        val name = (value \ "name").as[String]
+        val code = (value \ "code").as[String]
+        val theType = (value \ "type").as[String]
+        val size = (value \ "size").as[Int]
+        val ui = (value \ "ui").as[String]
+        val funcPointer = Eval.evaluateCodeToFunction(code)
+        val statFunc = StatFunction(name, code, size, theType, funcPointer, ui)
+        stats += (key -> statFunc)
+      }
+    }
+
     def save(toFile: java.io.File): Unit = {
       val writer = new PrintWriter(toFile)
       val content = Json.obj(
@@ -212,6 +228,10 @@ class WebServerChannel(val learner: Learner) extends Learner.LearnerObserver {
       case "getModelGraph" =>
         getModelGraph()
 
+      case "loadMetrics" =>
+        var file = new File("testfile.json")
+        state.load(file)
+        (true, "")
       /*
       case "getDataForTick" =>
         var start = (value.as[JsValue] \ "start").as[Int]

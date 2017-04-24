@@ -1,4 +1,4 @@
-# BIDMach_Viz
+# BIDViz
 
 ### Add interactivity to existing BIDMach script
 
@@ -57,11 +57,11 @@ opts.dim = 256
 opts.batchSize = math.min(100000, mat0.ncols/30 + 1)
 opts.npasses = 1000
 val nn = new Learner(
-        new MatSource(Array(mat0:Mat), opts), 
-        new KMeans(opts), 
+        new MatSource(Array(mat0:Mat), opts),
+        new KMeans(opts),
         null,
-        new Batch(opts), 
-        null, 
+        new Batch(opts),
+        null,
         opts)
 nn.train
 ```
@@ -73,9 +73,9 @@ import BIDMach.ui.WebServerChannel
 nn.opts.observer = new WebServerChannel(nn)
 ```
 WebServer takes a Learner instance as constructor argument.
-Save the file. Now we can run it by first running a sbt console using 
+Save the file. Now we can run it by first running a sbt console using
 ```sbt console```
-Then load the file using 
+Then load the file using
 ```:load kmeans.ssc```
 
 The script will start running, eventually you will see this log
@@ -84,46 +84,140 @@ The script will start running, eventually you will see this log
 23:49:37.420 [run-main-0] INFO  play.core.server.NettyServer - Listening for HTTP on /0:0:0:0:0:0:0:0:9000
 ```
 After this the webserver has started and you can access the visualization UI by
-directing your browser to [*http://localhost:9000/](http://localhost:9000/)
+directing your browser to [*http://localhost:10001/](http://localhost:10001/)
 
-![screen](bidmach_shot.png)
+![screen](bidviz_interface.png)
 
-You will see something like the above screen shot. 
+You will see something like the above screen shot.
+
+API Documentation
+=================
+
+When the webapp is first launched, it establishes a websocket connection to
+/ws. All communication between the server and the javascript is done
+through this websocket. Below describes different messages that the server
+handles.
+
+Client Initiated Message
+------------------------
+
+Client can send a message of this format:
+```
+{
+    methodName: <methodName>;
+    content: ...
+}
+```
+The methodName refers the different methods that javascript wants to invoke
+in the client. The different methodName the server accepts are:
+
+* addFunction
+* pauseTraining
+* modifyParam
+* evaluateCommand
+* getCode
+Below will describe what each of them do and what they accept as content.
+
+### addFunction
+Accepts
+```
+{
+    methodName: "addFunction",
+    content: {
+        name: name,
+        code: code,
+        type: type
+    }
+}
+```
+Returns
+```
+{
+    success: true,
+    data: ""
+}
+```
+if succeeds,
+Or
+```
+{
+    success: false,
+    data: "error message"
+}
+```
+if fails.
+
+### pauseTraining
+
+Accepts
+```
+{
+    methodName: "pauseTraining",
+    content: <boolean>
+}
+```
+Content is true to pause and false to resume.
+Returns: Nothing
+
+### modifyParam
+Accepts:
+```
+{
+    methodName: "modifyParam",
+    content: {
+      // a map of key to newvalue
+    }
+}
+```
+The server will iterate over that map and set the value using reflexion.
+Returns: Nothing
 
 
-#### Interactive Machine Learning toolkit based on BIDMach
 
-#### Install and build
+### evaluateCommand
+Accepts:
+```
+{
+    methodName: "evaluateCommand",
+    content: {
+        code: "// the command to evaluate"
+    }
+}
+```
+Execute to the command inside of "code".
+Returns
+```
+{
+    success: boolean,
+    data: "string"
+}
+```
+if success is true, then data is the result of the evaluation,
+if success is false, then the data is the error message returned
 
-This toolkit uses [play] web framework and it requires Java 8. We use [maven] for package management. You can modify [pom.xml] to configure the build process. 
+### getCode
+Accepts
+```
+{
+    methodName: "evaluateCommand",
+    content: {
+       name : "name of the chart"
+    }
+}
+```
+get the Scala code user originally submitted to server for the chart of name.
+Returns
+```
+{
+    success: boolean,
+    data: "scala code as string"
+}
+```
 
-We support both CUDA 7.0, 7.5 and 8.0. You will need to change the project version in pom.xml to 1.1.0-cuda7.0  1.1.0-cuda7.5 or 1.1.1-cuda8.0 base on your preference. 
+Server initialized messages
+---------------------------
 
-To compile the project, use:
-<pre>
-git clone https://github.com/BIDData/BIDMach_Viz.git
-mvn compile
-</pre>
-
-To generate the package and pull all the jars into the lib folder, use:
-<pre>
-mvn package
-</pre>
-
-After you get all the jars, the web server can be started using:
-<pre>
-./sbt -J-Xmx32g run
-</pre>
-
-And then select the program you would like to run.
-
-[play]: https://www.playframework.com/
-[maven]: https://maven.apache.org/
-[pom.xml]: https://github.com/BIDData/BIDMach_Viz/blob/master/pom.xml
-
-
-
-
-
-
-
+Server sends messages to client spontaneously on the following cases:
+* on generating a new data point
+* on run time message of the graph code
+* sending requested parameters
