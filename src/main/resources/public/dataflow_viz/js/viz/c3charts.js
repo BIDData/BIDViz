@@ -1,5 +1,8 @@
-function C3LineChart(id, name, size) {
-    this.name = name;
+function C3LineChart(id, names, size) {
+    if (typeof(names) == "string")
+        names = [names]
+    this.names = names;
+    console.log(id,names)
     this.id = id;
     this.minValue = 1000000000
     this.definition = {
@@ -9,7 +12,7 @@ function C3LineChart(id, name, size) {
             columns:[ ['x'], ['y']]
         },
         zoom: {
-            enabled: true
+            enabled: false
         }
     };
 //    this.chart = c3.generate(this.definition);
@@ -24,14 +27,14 @@ function C3LineChart(id, name, size) {
         this.chart = c3.generate({
                     bindto: '#' + this.id,
                     data: {
-                        columns: [[name].concat(d3.range(100).map(function(){return inf}))],
+                        columns: names.map(function(d){return [d].concat(d3.range(100).map(function(){return inf}))}),
                         axes: axes
                     },
                     point: {
                         show: false
                     },
                     zoom: {
-                            enabled: true
+                            enabled: false
                     },
                     axis: {
                         y: {
@@ -72,16 +75,20 @@ C3LineChart.prototype.addPoint = function (ipass, sizes, values) {
     this.definition.data.columns[1].push(values[0]);
     this.chart.load(this.definition.data);
     return;*/
-    var value = parseFloat(values[0])
+    var v = values.map(function(d){return parseFloat(d)*2})
+    console.log(v)
+    var value = d3.min(v)
     if (this.chart == null)
         this.init(value)
     if (Math.floor(value) < this.minValue) {
         this.minValue = Math.floor(value)
         this.chart.axis.min({y2:this.minValue})
     }
-    
+    var data = []
+    for(var i=0;i<this.names.length;i++)
+        data.push([this.names[i],v[i]])
     this.chart.flow({
-            columns: [[this.name,value]],
+            columns: data,
             length: 1,
             duration: 0 
         })

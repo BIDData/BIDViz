@@ -166,11 +166,16 @@
 
     VizManager.prototype.createGraph = function (name, type, shape) {
         var chart;
+        var tmp = name.split("|")
+        var id = tmp[0]
+        var names = name
+        if (tmp.length>1)
+            names = tmp[1].split(",")
         if ((name in this.allCharts)) {
             alert("A visualization called " + name +" already existed")
             return;
         }
-        var graphSuit = createGraphSuit(name);
+        var graphSuit = createGraphSuit(id);
         $('#' + this.root).append(graphSuit);
         /*if (type === 'LineChart') {
             var size = shape[0] * shape[1];
@@ -185,7 +190,7 @@
             chart = new C3LineChart(name, name);
         }*/
         var size = shape[0] * shape[1];
-        chart = new dictOfVizClass[type](name,name,size)
+        chart = new dictOfVizClass[type](id,names,size)
         this.allCharts[name] = chart;
         return chart;
     }
@@ -278,13 +283,11 @@
     }
     
     VizManager.prototype.createModelGraph = function(divId) {
-        console.log(this.modelGraph)
         if (this.modelGraph != null) return
         var data = {
             methodName: "getModelGraph"
         }
         this.sendData(data,(function(result){
-            console.log("model",result)
             if (result.success)
                 this.modelGraph = new ModelGraph(divId,result.data)
         }).bind(this))
