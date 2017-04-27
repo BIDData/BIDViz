@@ -273,12 +273,29 @@
         }.bind(this));
     }
 
-    VizManager.prototype.saveMetrics = function() {
+    VizManager.prototype.saveMetrics = function(name) {
         var data = {
-            methodName: "saveMetrics"
+            methodName: "saveMetrics",
+            content: name
         };
         this.sendData(data, function(result) {
             console.log(result);
+        }.bind(this));
+    }
+    VizManager.prototype.loadMetrics = function(name) {
+        var data = {
+            methodName: "loadMetrics",
+            content: name
+        };
+        this.sendData(data, function(result) {
+            console.log("loadMetrics");
+            console.log(result.data);
+            var data = JSON.parse(result.data).stats;
+            for (var name in data) {
+                var obj = data[name];
+                var chart = this.createGraph(obj.name, obj.type, [obj.size, 1]);
+                this.allCharts[name] = chart;
+            }
         }.bind(this));
     }
     

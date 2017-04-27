@@ -36,11 +36,13 @@ class WebServerChannel(val learner: Learner) extends Learner.LearnerObserver {
     var currentStart = 0
     var currentTick = 0
 
-    def load(fromFile: java.io.File): Unit = {
+    def load(fromFile: java.io.File):String = {
       val stringContent = new Scanner(
-        new File("filename")).useDelimiter("\\Z").next()
-      val content = Json.parse(stringContent).as[Map[String, JsValue]]
+        fromFile).useDelimiter("\\Z").next()
+      val content = (Json.parse(stringContent) \ "stats").as[Map[String, JsValue]]
       for ((key, value) <- content) {
+        println(key)
+        println(value)
         val name = (value \ "name").as[String]
         val code = (value \ "code").as[String]
         val theType = (value \ "type").as[String]
@@ -50,6 +52,7 @@ class WebServerChannel(val learner: Learner) extends Learner.LearnerObserver {
         val statFunc = StatFunction(name, code, size, theType, funcPointer, ui)
         stats += (key -> statFunc)
       }
+      return stringContent
     }
 
     def save(toFile: java.io.File): Unit = {
@@ -222,16 +225,18 @@ class WebServerChannel(val learner: Learner) extends Learner.LearnerObserver {
       case "getCode" =>
         getCodeSnippet(values.as[JsValue])
       case "saveMetrics" =>
-        var file = new File("testfile.json")
+        var name = values.as[String]
+        var file = new File(name)
         state.save(file)
         (true, "")
       case "getModelGraph" =>
         getModelGraph()
-
       case "loadMetrics" =>
-        var file = new File("testfile.json")
-        state.load(file)
-        (true, "")
+        var name = values.as[String]
+        println("I am here 2", name)
+        var file = new File(name)
+        val result = state.load(file)
+        (true, result)
       /*
       case "getDataForTick" =>
         var start = (value.as[JsValue] \ "start").as[Int]

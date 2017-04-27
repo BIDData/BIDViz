@@ -81,7 +81,13 @@
                     <a class="page-scroll" id="pause">Pause</a>
                 </li>
                 <li>
-                    <a class="page-scroll" id="setValue">Set Value</a>
+                    <input class="page-scroll" id="filename" placeholder="Filename to save"/>
+                </li>
+                <li>
+                    <a class="page-scroll" id="saveMetric">Save Data</a>
+                </li>
+                <li>
+                    <a class="page-scroll" id="loadMetric">Load Data</a>
                 </li>
                 <li>
                     <a class="page-scroll" data-toggle="modal" data-target="#my_modal" id="addCode">Add Code</a>
@@ -308,9 +314,16 @@
             });
         });
 
-        $('#setValue').click(function (event) {
+        $('#loadMetric').click(function (event) {
             event.preventDefault();
-            viz.saveMetrics();
+            var name = $('#filename').val();
+            viz.loadMetrics(name);
+        });
+
+        $('#saveMetric').click(function (event) {
+            event.preventDefault();
+            var name = $('#filename').val();
+            viz.saveMetrics(name);
         });
 
         $('#parameters_table').editableTableWidget();
