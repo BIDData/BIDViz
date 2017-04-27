@@ -19,6 +19,7 @@ import scala.collection.mutable.{Map => MMap}
 import scala.collection.mutable.ListBuffer
 import scala.io.Source
 import java.io._
+import java.util.Scanner
 
 import scala.collection.mutable
 import scala.tools.reflect.ToolBoxError
@@ -35,7 +36,25 @@ class WebServerChannel(val learner: Learner, val debug:Boolean = false) extends 
     var currentStart = 0
     var currentTick = 0
 
-    def load(fromFile: java.io.File) {}
+    def load(fromFile: java.io.File):String = {
+      val stringContent = new Scanner(
+        fromFile).useDelimiter("\\Z").next()
+      val content = (Json.parse(stringContent) \ "stats").as[Map[String, JsValue]]
+      for ((key, value) <- content) {
+        println(key)
+        println(value)
+        val name = (value \ "name").as[String]
+        val code = (value \ "code").as[String]
+        val theType = (value \ "type").as[String]
+        val size = (value \ "size").as[Int]
+        val ui = (value \ "ui").as[String]
+        val funcPointer = Eval.evaluateCodeToFunction(code)
+        val statFunc = StatFunction(name, code, size, theType, funcPointer, ui)
+        stats += (key -> statFunc)
+      }
+      return stringContent
+    }
+
     def save(toFile: java.io.File): Unit = {
       val writer = new PrintWriter(toFile)
       val content = Json.obj(
@@ -206,12 +225,18 @@ class WebServerChannel(val learner: Learner, val debug:Boolean = false) extends 
       case "getCode" =>
         getCodeSnippet(values.as[JsValue])
       case "saveMetrics" =>
-        var file = new File("testfile.json")
+        var name = values.as[String]
+        var file = new File(name)
         state.save(file)
         (true, "")
       case "getModelGraph" =>
         getModelGraph()
-
+      case "loadMetrics" =>
+        var name = values.as[String]
+        println("I am here 2", name)
+        var file = new File(name)
+        val result = state.load(file)
+        (true, result)
       /*
       case "getDataForTick" =>
         var start = (value.as[JsValue] \ "start").as[Int]
