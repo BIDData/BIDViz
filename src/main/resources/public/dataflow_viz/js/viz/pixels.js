@@ -11,7 +11,7 @@
         var image = this.ctx.getImageData(0,0,300,300)
         for(var i=0;i<image.data.length;i+=4){
             image.data[i] = 0
-            image.data[i+3] = 255
+            image.data[i+3] = 0
         }
 //        console.log("pixel",image.data.slice(0,20))
         this.ctx.putImageData(image,0,0)
@@ -28,7 +28,7 @@
             values[i] = parseInt(values[i]*1000) + 128
 //        console.log()
         var n = Math.ceil(Math.sqrt(sizes[1]))
-        var size = 2
+        var size = 10
         var image = this.ctx.getImageData(0,0,n*patch*size,n*patch*size)
         for(var i=0;i<n;i++)
             for(var j=0;j<n;j++)
@@ -62,7 +62,7 @@
         var image = this.ctx.getImageData(0,0,300,300)
         for(var i=0;i<image.data.length;i+=4){
             image.data[i] = 0
-            image.data[i+3] = 255
+            image.data[i+3] = 0
         }
         this.ctx.putImageData(image,0,0)
         var img = this.ctx.getImageData(0,0,300,300)

@@ -2,7 +2,6 @@ function C3LineChart(id, names, size) {
     if (typeof(names) == "string")
         names = [names]
     this.names = names;
-    console.log(id,names)
     this.id = id;
     this.minValue = 1000000000
     this.definition = {
@@ -20,7 +19,9 @@ function C3LineChart(id, names, size) {
     this.chart = null
     this.init = function(lower_bound) {
         var axes = {}
-        axes[name] = "y2"
+        names.forEach(function(name){
+            axes[name] ="y2"
+        })
         var inf = -10000
         while (Math.floor(lower_bound-Math.abs(lower_bound)-10)<inf)
             inf*=10
@@ -75,8 +76,7 @@ C3LineChart.prototype.addPoint = function (ipass, sizes, values) {
     this.definition.data.columns[1].push(values[0]);
     this.chart.load(this.definition.data);
     return;*/
-    var v = values.map(function(d){return parseFloat(d)*2})
-    console.log(v)
+    var v = values.map(function(d){return parseFloat(d)})
     var value = d3.min(v)
     if (this.chart == null)
         this.init(value)

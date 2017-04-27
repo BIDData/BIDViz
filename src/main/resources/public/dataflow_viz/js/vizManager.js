@@ -24,10 +24,14 @@
     function createGraphSuit(id) {
         var graph_suit = $("<div></div>").addClass("graph_suit").addClass("col-md-6").attr("id", id + '_suit').css("width", "50%").css("height", "450px").css("margin-bottom", "60px");
         var loadCode = $('<button>');
-        loadCode.html("Modify");
+        loadCode.html("Modify code");
         loadCode.addClass('chart');
         loadCode.attr("statname", id);
-        graph_suit.append(loadCode);
+        var buttionDiv = $("<div></div>")//.attr("style","display: inline-block;")
+        buttionDiv.append(loadCode)
+        graph_suit.append(buttionDiv);
+        var menu = $("<div></div>").attr("id", id+"_menudiv")//.attr("style","display: inline-block;")
+        graph_suit.append(menu);
         var graph = $("<div></div>").attr("id", id).css("margin", "0 auto");
         graph_suit.append(graph);
         var select_option = $("<option></option>").val(id).text(id).attr("selected", "selected");
@@ -177,6 +181,8 @@
         }
         var graphSuit = createGraphSuit(id);
         $('#' + this.root).append(graphSuit);
+        if (type == "C3LineChart")
+            Slider(d3.select("#"+id + '_menudiv'),id)
         /*if (type === 'LineChart') {
             var size = shape[0] * shape[1];
             chart = new LineChart(name, name, size);
