@@ -2,7 +2,7 @@ package BIDMach.ui
 
 import BIDMach.ui.Message.{contentWrite, messageWrite}
 import BIDMach.Learner
-import BIDMat.{Mat,FMat,GMat,TMat,IMat}
+import BIDMat.{Mat,FMat,GMat,TMat,IMat,DMat}
 import BIDMat.SciFunctions.variance
 import BIDMat.MatFunctions.?
 import BIDMat.MatFunctions.ones
@@ -27,7 +27,7 @@ import scala.tools.reflect.ToolBoxError
 /**
   * Created by han on 11/30/16.
   */
-class WebServerChannel(val learner: Learner) extends Learner.LearnerObserver {
+class WebServerChannel(val learner: Learner, val debug:Boolean = false) extends Learner.LearnerObserver {
 
   class StatState(var maxSize: Int) {
     var stats: MMap[String, StatFunction] = MMap()
@@ -62,7 +62,7 @@ class WebServerChannel(val learner: Learner) extends Learner.LearnerObserver {
       }
       var exceptions: List[String] = List()
       for ((name, f) <- stats) {
-        println(s"evaluating, $name")
+        if (debug) println(s"evaluating, $name")
         try {
           val newmat = f.funcPointer(model, minibatch, learner)
           result get name match {
@@ -286,19 +286,18 @@ class WebServerChannel(val learner: Learner) extends Learner.LearnerObserver {
   }
 
   override def notify(ipass: Int, model: Model, minibatch: Array[Mat]): Unit = {
-    // save data point into datas
-    val (_, exceptions) = state.evaluateDatapoint(model, minibatch, learner)
-    var messages = new ListBuffer[Message]
-    // always send out error messages
-    for (exc <- exceptions) {
-      val error = ErrorMessage(exc)
-      messages += Message("error_message", error)
-    }
-
     // if has passed enough time, fetch a collection of data points and send them out.
     var currentTime = System.currentTimeMillis()
+    var messages = new ListBuffer[Message]
     if ((currentTime - lastMessageTimeMillis) > AVG_MESSAGE_TIME_MILLIS &&
       server.func != null) {
+      // save data point into datas
+      val (_, exceptions) = state.evaluateDatapoint(model, minibatch, learner)
+    // always send out error messages
+      for (exc <- exceptions) {
+          val error = ErrorMessage(exc)
+          messages += Message("error_message", error)
+      }
       val results = state.getAggregatedDatapointAndIncrementTick(prevUpdate, currentTick)
       for ((name, mat) <- results) {
         val (sizes, data) = WebServerChannel.matToArr(mat)
@@ -330,12 +329,13 @@ object WebServerChannel {
 //    val result = (for (i <- 0 until row;
 //                       j <- 0 until col) yield s"${m(i, IMat(j))}")
     val result = FMat(m).data
-    println(result.take(10).toList)
     (Seq(row, col), result)
   }
 
   def setValue(obj: AnyRef, name: String, value: String): Unit = {
-    var targetClass = obj.getClass.getMethods.find(_.getName == name).get.getReturnType
+    var targetMethod = obj.getClass.getMethods.find(_.getName == name).get
+    var targetClass = targetMethod.getReturnType   
+    var target = targetMethod.invoke(obj)
     var targetVal: AnyRef = null
     targetClass match {
       case _: Class[Float] => targetVal = value.toFloat.asInstanceOf[AnyRef]
@@ -343,11 +343,18 @@ object WebServerChannel {
       case _: Class[Int]  => targetVal = value.toInt.asInstanceOf[AnyRef]
       case _: Class[Boolean]  => targetVal = value.toBoolean.asInstanceOf[AnyRef]
     }
-    obj.getClass.getMethods.find(_.getName == name + "_$eq").get.invoke(obj, targetVal)
+    target match {
+        case m:FMat => m(0) = value.toFloat
+        case m:IMat => m(0) = value.toInt
+        case m:DMat => m(0) = value.toDouble
+        case _ => obj.getClass.getMethods.find(_.getName == name + "_$eq").get.invoke(obj, targetVal)
+    }
   }
+    
   def allOnes(mats: Array[Mat]): Mat = {
     ones(1,1)
   }
+    
   def arraymean(model: Model, minibatch: Array[Mat]): Mat = {
     var m:Mat = null
     for (i <- model.mats) {

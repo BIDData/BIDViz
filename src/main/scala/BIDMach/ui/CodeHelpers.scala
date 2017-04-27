@@ -17,6 +17,8 @@ import scala.concurrent.Future
   */
 
 object CodeHelpers {
+  var lasti = 0
+      
   def logLikelihood(learner: Learner):Mat = {
     val len = learner.reslist.length
     val istart = if (learner.opts.cumScore == 0) learner.lasti else
@@ -29,6 +31,29 @@ object CodeHelpers {
     }
     var mat = ones(1,1)
     mat(0, 0) = (sum/(len - istart))
+    mat
+  }
+    
+  def loss(learner: Learner):Mat = {
+    val len = learner.reslist.length
+    val istart = if (learner.opts.cumScore == 0) lasti else
+      {if (learner.opts.cumScore == 1) 0 else if (learner.opts.cumScore == 2) len/2 else 3*len/4};
+    lasti = len
+    var i = 0
+    var mat = ones(2,1)
+    var sum = 0.0;
+    for (scoremat <- learner.reslist) {
+      if (i >= istart) sum += mean(scoremat(?,0)).v
+      i += 1
+    }
+    mat(0, 0) = (sum/(len - istart))
+    sum = 0.0;
+    i = 0
+    for (scoremat <- learner.trainReslist) {
+      if (i >= istart) sum += mean(scoremat(?,0)).v
+      i += 1
+    }
+    mat(1, 0) = (sum/(len - istart))
     mat
   }
 
