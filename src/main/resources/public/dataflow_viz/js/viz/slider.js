@@ -11,7 +11,7 @@
     valueList.push(1)    
     
     function Slider(div,name,parameterList){
-        parameterList = parameterList || ["---","momentum","langevin","lrate"]
+        parameterList = parameterList || ["---","momentum","langevin","lrate","reg2weight"]
         var s={}
         var menu = div.append("div")
         var controls = div.append("controls")

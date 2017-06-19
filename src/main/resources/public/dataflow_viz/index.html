@@ -81,13 +81,7 @@
                     <a class="page-scroll" id="pause">Pause</a>
                 </li>
                 <li>
-                    <input class="page-scroll" id="filename" placeholder="Filename to save"/>
-                </li>
-                <li>
-                    <a class="page-scroll" id="saveMetric">Save Data</a>
-                </li>
-                <li>
-                    <a class="page-scroll" id="loadMetric">Load Data</a>
+                    <a class="page-scroll" id="Config" data-target="#my_modal4">Config</a>
                 </li>
                 <li>
                     <a class="page-scroll" data-toggle="modal" data-target="#my_modal" id="addCode">Add Code</a>
@@ -252,6 +246,31 @@
         </div>
     </div>
 </div>
+   
+    
+<div class="modal fade" id="my_modal4" tabindex="-1" role="dialog"
+     aria-labelledby="my_modal_label4" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-body ">
+                <div id="input_filename">
+                    <div class="row">
+                      <div class="col-lg-6">
+                          <div class="input-group">
+                              <input class="page-scroll" id="filename" placeholder="Filename for config"/>
+                              <button class="btn btn-primary" type="button" id="SaveConfig">Save</button>
+                              <button class="btn btn-primary" type="button" id="LoadConfig">Load</button>
+                          </div>
+                      </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
     
   
 
@@ -276,7 +295,7 @@
 
         window.configuration = ace.edit(document.getElementById("configuration"));
         window.configuration.setTheme("ace/theme/monokai");
-        window.configuration.getSession().setMode("ace/mode/scala");
+        window.configuration.getSession().setMode("ace/mode/json");
         
         d3.select("#type").selectAll("option").data(Object.keys(dictOfVizClass)).enter()
             .append("option")
@@ -285,25 +304,30 @@
 
         $('#submit').click(function (event) {
             event.preventDefault();
-            var name = $('#name').val();
-            var type = $('#type').val();
-            var code = editor.getValue();
-            var obj = {
-                name: name,
-                code: code,
-                type: type
-            };
-            console.log(window.viz.addStat(obj, function (msg) {
-                if (!msg.success) {
-                    console.log("compile error" , msg);
-                    $('div#compile_error').html(msg.data);
-                    $('.collapse').collapse('show');
-                }
-                else {
-                    $('#my_modal').modal('hide');
-                    window.viz.createGraph(name, type, [1,1]);
-                }
-            }));
+            if (d3.select("#addcode_panel").classed("active")) {
+                var name = $('#name').val();
+                var type = $('#type').val();
+                var code = editor.getValue();
+                var obj = {
+                    name: name,
+                    code: code,
+                    type: type
+                };
+                console.log(window.viz.addStat(obj, function (msg) {
+                    if (!msg.success) {
+                        console.log("compile error" , msg);
+                        $('div#compile_error').html(msg.data);
+                        $('.collapse').collapse('show');
+                    }
+                    else {
+                        $('#my_modal').modal('hide');
+                        window.viz.createGraph(name, type, [1,1]);
+                    }
+                }));
+            }
+            if (d3.select("#configure_panel").classed("active")) {
+                
+            }
         });
 
 
@@ -315,22 +339,30 @@
             });
         });
 
-        $('#loadMetric').click(function (event) {
+        $('#Config').click(function (event) {
+            event.preventDefault();
+            $('#my_modal4').modal('show');
+        });
+        
+        $('#LoadConfig').click(function (event) {
             event.preventDefault();
             var name = $('#filename').val();
             viz.loadMetrics(name);
+            $('#my_modal4').modal('hide');
         });
 
-        $('#saveMetric').click(function (event) {
+        $('#SaveConfig').click(function (event) {
             event.preventDefault();
             var name = $('#filename').val();
             viz.saveMetrics(name);
+            $('#my_modal4').modal('hide');
         });
 
         $('#parameters_table').editableTableWidget();
         $('#update_parameter').click(viz.modifyParam.bind(viz));
         $('#showMg').click(function(){viz.createModelGraph.bind(viz)("modelgraph")})
-
+        
+        
         jQuery(function ($, undefined) {
             $('#message').terminal(function (command) {
                 var term = this;
@@ -381,8 +413,8 @@
                 console.log("event", event);
                 var chartName = $(event.currentTarget).attr("statname")
                 console.log(chartName);
-                var definition = JSON.stringify(viz.allCharts[chartName].definition, null, '\t');
-                window.configuration.setValue(definition, -1);
+//                var definition = JSON.stringify(viz.allCharts[chartName].definition, null, '\t');
+//                window.configuration.setValue(definition, -1);
                 window.viz.getCode(chartName, function(msg) {
                     if (msg.success) {
                         window.editor.setValue("", -1);

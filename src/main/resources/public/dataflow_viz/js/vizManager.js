@@ -175,10 +175,10 @@
         var names = name
         if (tmp.length>1)
             names = tmp[1].split(",")
-        if ((name in this.allCharts)) {
+        /*if ((name in this.allCharts)) {
             alert("A visualization called " + name +" already existed")
             return;
-        }
+        }*/
         var graphSuit = createGraphSuit(id);
         $('#' + this.root).append(graphSuit);
         if (type == "C3LineChart")

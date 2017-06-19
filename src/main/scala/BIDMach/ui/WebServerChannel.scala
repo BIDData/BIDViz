@@ -180,7 +180,7 @@ class WebServerChannel(val learner: Learner, val debug:Boolean = false) extends 
 
   def evaluateCommand(jsValue: JsValue): (Boolean, String) = {
     val code = (jsValue \ "code").as[String]
-    try {
+    try {      
       val func = Eval.evaluateCodeToCommand(code)
       val result = func(learner).toString
       return (true, result)
@@ -236,7 +236,7 @@ class WebServerChannel(val learner: Learner, val debug:Boolean = false) extends 
         println("I am here 2", name)
         var file = new File(name)
         val result = state.load(file)
-        (true, result)
+        (true, result)      
       /*
       case "getDataForTick" =>
         var start = (value.as[JsValue] \ "start").as[Int]
