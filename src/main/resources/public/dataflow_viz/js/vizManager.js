@@ -168,7 +168,7 @@
         }
     }
 
-    VizManager.prototype.createGraph = function (name, type, shape) {
+    VizManager.prototype.createGraph = function (name, type, config) {
         var chart;
         var tmp = name.split("|")
         var id = tmp[0]
@@ -195,8 +195,7 @@
         } else if (type == 'C3LineChart') {
             chart = new C3LineChart(name, name);
         }*/
-        var size = shape[0] * shape[1];
-        chart = new dictOfVizClass[type](id,names,size)
+        chart = new dictOfVizClass[type](id,names,config)
         this.allCharts[name] = chart;
         return chart;
     }

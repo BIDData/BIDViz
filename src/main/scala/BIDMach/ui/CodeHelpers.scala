@@ -19,13 +19,28 @@ import scala.concurrent.Future
 object CodeHelpers {
   var lasti = 0
       
-  def logLikelihood(learner: Learner):Mat = {
+  def validScore(learner: Learner):Mat = {
     val len = learner.reslist.length
     val istart = if (learner.opts.cumScore == 0) learner.lasti else
       {if (learner.opts.cumScore == 1) 0 else if (learner.opts.cumScore == 2) len/2 else 3*len/4};
     var i = 0
     var sum = 0.0;
     for (scoremat <- learner.reslist) {
+      if (i >= istart) sum += mean(scoremat(?,0)).v
+      i += 1
+    }
+    var mat = ones(1,1)
+    mat(0, 0) = (sum/(len - istart))
+    mat
+  }
+    
+  def trainScore(learner: Learner):Mat = {
+    val len = learner.reslist.length
+    val istart = if (learner.opts.cumScore == 0) learner.lasti else
+      {if (learner.opts.cumScore == 1) 0 else if (learner.opts.cumScore == 2) len/2 else 3*len/4};
+    var i = 0
+    var sum = 0.0;
+    for (scoremat <- learner.trainReslist) {
       if (i >= istart) sum += mean(scoremat(?,0)).v
       i += 1
     }
@@ -56,6 +71,8 @@ object CodeHelpers {
     mat(1, 0) = (sum/(len - istart))
     mat
   }
+    
+  
 
   def toHistogram(input: Mat, buckets:Int): Mat = {
     var result = zeros(buckets, 2)

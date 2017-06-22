@@ -110,11 +110,11 @@
 
 
 // Common interface for charts is addPoint( point ) where point is a matrix of conforming shape
-function LineChart(id, name, size) {
+function LineChart(id, name, config) {
     this.id = id;
     this.name = name;
     this.shape = [1, 1];
-    this.size = size;
+    this.size = config["size"];
     if (!this.size) {
         this.size = 1;
     }
