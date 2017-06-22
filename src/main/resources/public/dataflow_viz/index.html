@@ -221,11 +221,15 @@
                         <div id="compile_error_config" class="row alert alert-danger collapse">
                             error
                         </div>
+                        <div id="preview_container">
+                            <div id="preview"></div>
+                        </div>
                     </div>
                 </div>
 
             </div>
             <div class="modal-footer">
+                <button type="button" class="btn btn-primary" id="preview_button">Preview</button>
                 <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
                 <button type="button" class="btn btn-primary" id="submit">Submit</button>
             </div>
@@ -376,7 +380,34 @@
                 }                
             }
         });
-
+        
+        $('#preview_button').click(function (event) {
+            event.preventDefault();
+            if (d3.select("#configure_panel").classed("active")) {
+                try {
+                    var code = JSON.parse(configuration.getValue())
+                    var fields = ["name","data"]
+                    fields.forEach(function(d){
+                        if (!code.hasOwnProperty(d))
+                            throw("Missing field: " + d)
+                    })
+                    var keys = Object.keys(code["data"])
+                    code["data"] = keys
+                    d3.select("#preview").remove()
+                    d3.select("#preview_container").append("div").attr("id","preview")
+                    var chart = new dictOfVizClass["VegaLiteChart"]("preview",code["name"],{"config":code})
+                    window.chart=chart
+                    for(var i=0;i<10;i++){
+                        chart.addPoint(i,null,d3.range(keys.length).map(function(d){return 0.1*i*(d+1)}))
+                    }
+                }
+                catch(err) {
+                    $('div#compile_error_config').html(err);
+                    $('.collapse').collapse('show');
+                }     
+            }
+        })
+                                   
 
         $('#pause').click(function (event) {
             event.preventDefault();

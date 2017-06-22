@@ -21,6 +21,7 @@ function VegaLiteChart(id, name, config) {
         Object.assign(config["config"],this.definition)
         this.definition = config["config"]        
     }
+    console.log(this.definition)
 
     var embedSpec = {
         mode: "vega-lite",  // Instruct Vega-Embed to use the Vega-Lite compiler
