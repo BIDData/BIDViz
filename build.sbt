@@ -25,7 +25,7 @@ javacOptions ++= Seq("-source", "1.8", "-target", "1.8")
 
 // scalacOptions ++= Seq("-deprecation","-target:jvm-1.7")
 
-initialCommands := scala.io.Source.fromFile("lib/bidmach_init.scala").getLines.mkString("\n")
+initialCommands := scala.io.Source.fromFile("lib/bidviz_init.scala").getLines.mkString("\n")
 
 javaOptions += "-Xmx20g"
 
@@ -43,13 +43,19 @@ val akkaStream = "com.typesafe.akka" %% "akka-stream" % AkkaVersion
 
 val akkaHttp = "com.typesafe.akka" %% "akka-http-experimental" % AkkaVersion
 
-libraryDependencies += akkaHttpJson
+libraryDependencies ++= Seq(
+  "com.typesafe.akka" %% "akka-http" % "10.0.9",
+  "com.typesafe.akka" %% "akka-http-testkit" % "10.0.9" % Test
+)
 
-libraryDependencies += akkaActor
 
-libraryDependencies += akkaStream
+//libraryDependencies += akkaHttpJson
 
-libraryDependencies += akkaHttp
+//libraryDependencies += akkaActor
+
+//libraryDependencies += akkaStream
+
+//libraryDependencies += akkaHttp
 // https://mvnrepository.com/artifact/com.typesafe.play/play_2.11
 
 libraryDependencies += "com.typesafe.play" % "play_2.11" % "2.4.8"
