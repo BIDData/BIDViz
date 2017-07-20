@@ -43,21 +43,21 @@ object utils {
                              "outwidth" -> m.opts.outwidth,                             
                              "height" -> m.opts.height,
                              "layers" -> layersInfo,
-                             "id" -> "graph").toString)
+                             "id" -> "graph"))
           case m:Net =>
               val layersInfo = m.layers.map(getLayerInfo(_))    
               (true,Json.obj("model" -> m.getClass.getSimpleName,
                              "layers" -> layersInfo,
-                             "id" -> "graph").toString)
+                             "id" -> "graph"))
           case _ =>
               (true,"[\"layer1\",\"layer2\"]")
   }
   val bidmachDir = "/raid/byeah/BIDMach/"
-      
+  val bidmachURL = "https://raw.githubusercontent.com/BIDData/BIDMach/master/src/main/"
   def process(learner: Learner)(msg:String) = {
       val data = msg.split("/")          
       if (data.head == "getCode")
-          scala.io.Source.fromFile(bidmachDir + "src/main/scala/BIDMach/networks/layers/"+data(1)).getLines.mkString("\n")
+//          scala.io.Source.fromFile(bidmachDir + "src/main/scala/BIDMach/networks/layers/"+data(1)).getLines.mkString("\n")
+          scala.io.Source.fromURL(bidmachURL + "scala/BIDMach/networks/layers/" + data(1)).getLines.mkString("\n")
   }
-    
 }
