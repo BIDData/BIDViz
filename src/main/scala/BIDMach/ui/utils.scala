@@ -4,6 +4,7 @@ import BIDMach.Learner
 import BIDMat.{FMat, GMat, Mat}
 import BIDMat.MatFunctions._
 import BIDMat.SciFunctions._
+import BIDMach.models._
 import BIDMach.networks._
 import BIDMach.networks.layers._
 import play.api.libs.json._
@@ -11,7 +12,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 object utils {
-    def getLayerInfo(layer:Layer): JsObject =
+    def getLayerInfo(layer:Layer,fn:Layer=>String = _.getClass.getSimpleName): JsObject =
       if (layer == null) JsObject(List()) else
       Json.obj("name" -> layer.getClass.getSimpleName,
                "imodel" -> (layer match {case ml:ModelLayer=>ml.imodel;case _ => -1}) ,
@@ -30,14 +31,18 @@ object utils {
                    case _ => ""
                }),
                "internalLayers" -> (layer match {
-                   case ml:CompoundLayer=>ml.internal_layers.map(getLayerInfo(_));
+                   case ml:CompoundLayer=>ml.internal_layers.map(getLayerInfo(_,fn));
                    case _ => Array[JsObject]()
-               }))
+               }),
+               "toDisplay" -> fn(layer)
+              )
+        
+//  def getModelGraph(learner: Learner):(Boolean, JsObject) = getModelGraph(learner.model)
 
-  def getModelGraph(learner: Learner) = 
-      learner.model match {
+  def getModelGraph(model: Model,fn:Layer=>String = _.getClass.getSimpleName):(Boolean, JsObject) = 
+        model match {
           case m:SeqToSeq =>              
-              val layersInfo = m.layers.map(getLayerInfo(_))    
+              val layersInfo = m.layers.map(getLayerInfo(_,fn))    
               (true,Json.obj("model" -> m.getClass.getSimpleName,
                              "inwidth" -> m.opts.inwidth,
                              "outwidth" -> m.opts.outwidth,                             
@@ -45,13 +50,14 @@ object utils {
                              "layers" -> layersInfo,
                              "id" -> "graph"))
           case m:Net =>
-              val layersInfo = m.layers.map(getLayerInfo(_))    
+              val layersInfo = m.layers.map(getLayerInfo(_,fn))    
               (true,Json.obj("model" -> m.getClass.getSimpleName,
                              "layers" -> layersInfo,
                              "id" -> "graph"))
           case _ =>
-              (true,"[\"layer1\",\"layer2\"]")
-  }
+              (true,null)//Json.obj("[\"layer1\",\"layer2\"]"))
+      }
+    
   val bidmachDir = "/raid/byeah/BIDMach/"
   val bidmachURL = "https://raw.githubusercontent.com/BIDData/BIDMach/master/src/main/"
   def process(learner: Learner)(msg:String) = {
